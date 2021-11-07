@@ -1,0 +1,48 @@
+{smcl}
+{txt}{sf}{ul off}{.-}
+      name:  {res}<unnamed>
+       {txt}log:  {res}D:\Google Drive\_DOUTORADO\__TESE\_TESE_3rd\Tese3rda\artigo1\stata\ardlmodel4ln\log-ardl4_ln.18 Jul 202117_24_06.smcl
+  {txt}log type:  {res}smcl
+ {txt}opened on:  {res}18 Jul 2021, 17:24:06
+{txt}
+{com}. 
+. 
+. gen t = tm(2002m11) + _n - 1
+{txt}
+{com}. tsset t, monthly
+{res}{txt}{col 9}time variable:  {res}{col 25}t, 2002m11 to 2019m12
+{txt}{col 17}delta:  {res}1 month
+{txt}
+{com}. 
+. /**********************************************
+> Modelo ARDL com séries como percentual do wp e 
+> desembolsos setoriais como percentual do wp e acumulados.
+> 
+> ***********************************************/
+. 
+. // ARDL regression
+. ardl fbcf cib curi embi er ibov ice ici iie ir lagr lcom lind linf /// 
+> nfsp wp poup tt wp, ///
+> lags(3 0 0 0 0 0 0 0 0 1 0 0 0 0 0 3 3 2 1) trendvar(t) regstore(ardl_model4_ln)
+{res}{txt}note: wp omitted because of collinearity
+note: L.wp omitted because of collinearity
+{err}Collinear variables detected.
+{txt}{search r(9), local:r(9);}
+
+end of do-file
+
+{search r(9), local:r(9);}
+
+{com}. 
+
+. do "D:\Google Drive\_DOUTORADO\__TESE\_TESE_3rd\Tese3rda\artigo1\stata\ARDL_ln_model4.do"
+{txt}
+{com}. clear all
+{res}{txt}
+{com}. 
+. set more off
+{txt}
+{com}. 
+. capture log close
+{smcl}
+{com}{sf}{ul off}

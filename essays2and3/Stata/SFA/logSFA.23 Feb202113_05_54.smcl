@@ -1,0 +1,74 @@
+{smcl}
+{txt}{sf}{ul off}{.-}
+      name:  {res}<unnamed>
+       {txt}log:  {res}D:\Google Drive\_DOUTORADO\__TESE\__CODEandDATA\__TESE_code-data\efficiency\Stata\SFA\logSFA.23 Feb 202113_05_54.smcl
+  {txt}log type:  {res}smcl
+ {txt}opened on:  {res}23 Feb 2021, 13:05:54
+{txt}
+{com}. 
+{txt}end of do-file
+
+{com}. do "C:\Users\carlo\AppData\Local\Temp\STD57a0_000000.tmp"
+{txt}
+{com}. levelsof conc, local(concs)
+{res}{txt}`"AUTOFERNAODIAS"' `"AUTOFLUMINENSE"' `"AUTOLITORALSUL"' `"AUTOPLANALTOSUL"' `"AUTOREGIS"' `"CCRPONTE"' `"CONCEBRA"' `"CONCEPA"' `"CONCER"' `"CRO"' `"CRT"' `"ECO101"' `"ECOPONTE"' `"ECOSUL"' `"MGORODOVIAS"' `"MSVIA"' `"NOVADUTRA"' `"RODOVIADOACO"' `"TRANSBRASILIANA"' `"VIA040"' `"VIABAHIA"'
+
+{com}. 
+{txt}end of do-file
+
+{com}. do "C:\Users\carlo\AppData\Local\Temp\STD57a0_000000.tmp"
+{txt}
+{com}. local count 1
+{txt}
+{com}. // loop na lista de concessionárias
+. foreach v in `concs'{c -(}
+{txt}  2{com}.         
+.         // substitui o id original, para os casos em que há match entre o nome da
+.         // concessionária na base e na lista de nomes 
+.         quietly replace id = `count' if conc == "`v'"
+{txt}  3{com}.         local ++count // atualiza o contador de id
+{txt}  4{com}. {c )-}
+{txt}
+{com}. 
+{txt}end of do-file
+
+{com}. do "C:\Users\carlo\AppData\Local\Temp\STD57a0_000000.tmp"
+{txt}
+{com}. // gera variáveis dummy para marcar as etapas
+. quietly gen dEtapa2 = (etp==2)
+{txt}
+{com}. quietly gen dEtapa3 = (etp==3)
+{txt}
+{com}. 
+{txt}end of do-file
+
+{com}. clear all
+{res}
+{com}. 
+
+. import delimited "D:\Google Drive\_DOUTORADO\__TESE\__CODEandDATA\__TESE_code-data\data\dados_2012_2016_adj.csv"
+{res}{text}(25 vars, 82 obs)
+
+{com}. do "C:\Users\carlo\AppData\Local\Temp\STD57a0_000000.tmp"
+{txt}
+{com}. *! Version 2021.02.23
+. ********************************************************************************
+. * Author: Carlos Eduardo Veras Neves                                                                       *
+. *                                                                              *
+. * Estimation of Technical Efficiency with SFA and DEA for Brazilian            *
+. * Federal Toll Road Concessions 
+. *                                                                              *
+. ********************************************************************************
+. * configuração inicial
+. set trace off
+{txt}
+{com}. 
+. clear all
+{res}{txt}
+{com}. 
+. set more off
+{txt}
+{com}. 
+. capture log close
+{smcl}
+{com}{sf}{ul off}

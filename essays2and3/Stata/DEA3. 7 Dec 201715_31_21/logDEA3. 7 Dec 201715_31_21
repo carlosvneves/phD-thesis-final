@@ -1,0 +1,575 @@
+{smcl}
+{txt}{sf}{ul off}{.-}
+      name:  {res}<unnamed>
+       {txt}log:  {res}C:\Dropbox\ANTT\AR-2017-2018\Fator X\1.PROJETO\STATA\Analysis-DEA-SFA\DEA3. 7 Dec 201715_31_21\logDEA3. 7 Dec 201715_31_21
+  {txt}log type:  {res}smcl
+ {txt}opened on:  {res} 7 Dec 2017, 15:31:21
+{txt}
+{com}. 
+. ** /////////////////////////////////////////////////////////////////////////////
+> /************************************************************************
+> (2) ANÁLISE DEA, TOMANDO COMO VARIÁVEIS:
+> - INPUTS: REC; CUST;
+> - OUTPUTS:  AVG;
+> 
+> 
+> *************************************** Comentário anterior ************************************************************
+> * A Escolha das variáveis leva em conta a análise realizada na parte (1), em que se 
+> verifica a relação positiva entre Custos Totais por km e a avaliação geral do trecho, quando se avalia o efeito de cada variável por etapa no modelo RE. Por outro lado, o aumento da receita não implica em melhora na avaliação geral. Isto posto, o modelo parte da premissa de que, por meio da abordagem DEA orientada a input, é possível identificar aquelas unidades em há melhor equilíbrio relativo entre receitas, custos e avaliação geral. 
+> A ideia seria classificar como ineficiente, aquela unidade em que as receitas estão em um nível muito elevado em relação aos custos totais e a avaliação geral do trecho.
+> 
+> Vale a observação de que Profeta (PROFETA, 2014: REGULAÇÃO E EFICIÊNCIA DOS MODELOS DE CONCESSÕES DE RODOVIAS NO BRASIL, TESE DE DOUTORADO - UFV/MG) entendeu que a eficiência estaria relacionada simplesmente à minimização dos custos totais. Assim elegeu como INPUT custos totais, e como OUTPUS Receitas Totais e Avaliação Geral. Contudo, aparentemente, Profeta não se atentou ao fato de que, de acordo com os relatórios financeiros das concessionárias, os custos totais incluem investimentos, que naturalmente implicam em melhora da condição da rodovia (e por consequência na sua avaliação. Assim, pode ser que não faça sentido a eficiência estar baseada na minimização desses custos.
+> Os resultados da parte (1) parecem indicar também esse fato e, por isso, optou-se por uma configuração diferente de INPUTs e OUTPUTs.
+> *************************************** Comentário atualizado **********************************************************
+> 
+> OUTPUT ORIENTED (para compatibilizar com SFA)
+> 
+> 
+> *************************************************************************/
+. 
+. // apaga qualquer unidade que tenha valor de receita ou custo nulo 
+. drop if rec  <=0 
+{txt}(0 observations deleted)
+
+{com}. drop if cust <=0
+{txt}(1 observation deleted)
+
+{com}. 
+. /*
+> subsititui os id's originais por id's para dados em painel (um id para cada concessionária)
+> */
+. // lista de concessionárias na base de dados 
+. levelsof conc, local(concs)
+{res}{txt}`"AUTOFERNAODIAS"' `"AUTOFLUMINENSE"' `"AUTOLITORALSUL"' `"AUTOPLANALTOSUL"' `"AUTOREGIS"' `"CCRPONTE "' `"CONCEBRA"' `"CONCEPA  "' `"CONCER"' `"CRO"' `"CRT"' `"ECO101"' `"ECOPONTE"' `"ECOSUL"' `"MGORODOVIAS"' `"MSVIA"' `"NOVADUTRA"' `"RODOVIADOACO"' `"TRANSBRASILIANA"' `"VIA040"' `"VIABAHIA"'
+
+{com}. // contador local para gerar id
+. local count 1
+{txt}
+{com}. // loop na lista de concessionárias
+. foreach v in `concs'{c -(}
+{txt}  2{com}.         
+.         // substitui o id original, para os casos em que há match entre o nome da
+.         // concessionária na base e na lista de nomes 
+.         quietly replace id = `count' if conc == "`v'"
+{txt}  3{com}.         local ++count // atualiza o contador de id
+{txt}  4{com}. {c )-}
+{txt}
+{com}. 
+. // gera variáveis dummy para marcar as etapas
+. quietly gen dEtapa2 = (etp==2)
+{txt}
+{com}. quietly gen dEtapa3 = (etp==3)
+{txt}
+{com}. 
+. // Como a análise na parte (1) indicou não haver variação relevante nas variáveis ao longo do tempo, optou-se por calcular as médias do período das variáveis de input e output
+. quietly bysort id: egen custm = mean(cust_km)
+{txt}
+{com}. quietly bysort id: egen recm = mean(rec_km)
+{txt}
+{com}. quietly bysort id: egen avgm = mean(avg)
+{txt}
+{com}. quietly bysort id: egen tarm = mean(tar)
+{txt}
+{com}. // identifica duplicatas
+. quietly by id: gen dup = cond(_N==1, 0, _n)
+{txt}
+{com}. // apaga duplicatas
+. drop if dup > 1
+{txt}(60 observations deleted)
+
+{com}. 
+. // gera índices para as DMUs
+. quietly gen dmu = id
+{txt}
+{com}. 
+. // apaga variáveis dispensáveis para a análise DEA
+. quietly drop id ano anoconc cust cust_km rec rec_km avg dup
+{txt}
+{com}. 
+. // salva dados para simulação DEA
+. save data_dea, replace
+{txt}(note: file data_dea.dta not found)
+file data_dea.dta saved
+
+{com}. 
+. // define inputs e outputs da análise DEA
+. global inp recm custm
+{txt}
+{com}. global out avgm 
+{txt}
+{com}. 
+. 
+. /***********************************************************************
+> ANÁLISE DEA CONSIDERANDO AS ORIENTAÇÕES INPUT E OUTPUT
+> ************************************************************************/
+. foreach direction in i o{c -(}
+{txt}  2{com}. 
+.         * DEA - variable returns to scale
+.         quietly: dea $inp = $out, rts(vrs) ort(`direction') stage(2) saving(dea_results)
+{txt}  3{com}.         mat deascores = r(dearslt)
+{txt}  4{com}.         mat deascores = deascores[1...,"theta"]
+{txt}  5{com}.         sort dmu
+{txt}  6{com}.         cap drop dea1
+{txt}  7{com}.         svmat deascores, names(dea)
+{txt}  8{com}.         rename dea1 deascore_`direction'
+{txt}  9{com}.         gen efficient_`direction' = deascore_`direction' == 1
+{txt} 10{com}. 
+. {c )-}
+options: RTS(VRS) ORT(IN) STAGE(2)
+{res}{com}options: RTS(VRS) ORT(OUT) STAGE(2)
+{res}{txt}
+{com}. 
+. * Escores de eficiência após primeiro estágio
+. tabstat deascore_i deascore_o efficient_i efficient_o, columns(statistics) statistics(mean sd median min max) format(%7.0g)
+
+{txt}{ralign 12:variable} {...}
+{c |}      mean        sd       p50       min       max
+{hline 13}{c +}{hline 50}
+{ralign 12:deascore_i} {...}
+{c |}{...}
+   {res} .66718    .35549     .6983    .02532         1
+{txt}{ralign 12:deascore_o} {...}
+{c |}{...}
+   {res}  .9185    .07844    .91342    .71903         1
+{txt}{ralign 12:efficient_i} {...}
+{c |}{...}
+   {res} .38095    .49761         0         0         1
+{txt}{ralign 12:efficient_o} {...}
+{c |}{...}
+   {res} .28571    .46291         0         0         1
+{txt}{hline 13}{c BT}{hline 50}
+
+{com}. 
+. savesome dmu conc deascore_o using eff_dea
+{txt}file eff_dea.dta saved
+
+{com}. 
+. 
+. di " ##### ANÁLISE DEA - INPUTS: REC;CUST - OUTPUTS: AVG ##### "
+{res} ##### ANÁLISE DEA - INPUTS: REC;CUST - OUTPUTS: AVG ##### 
+{txt}
+{com}. 
+. list dmu conc deascore_i deascore_o
+{txt}
+     {c TLC}{hline 5}{c -}{hline 17}{c -}{hline 10}{c -}{hline 10}{c TRC}
+     {c |} {res}dmu              conc   deasco~i   deasco~o {txt}{c |}
+     {c LT}{hline 5}{c -}{hline 17}{c -}{hline 10}{c -}{hline 10}{c RT}
+  1. {c |} {res}  1    AUTOFERNAODIAS   .5564293   .8017424 {txt}{c |}
+  2. {c |} {res}  2    AUTOFLUMINENSE   .1168521   .8607054 {txt}{c |}
+  3. {c |} {res}  3    AUTOLITORALSUL   .4055709   .8908237 {txt}{c |}
+  4. {c |} {res}  4   AUTOPLANALTOSUL   .8637795   .8661183 {txt}{c |}
+  5. {c |} {res}  5         AUTOREGIS          1          1 {txt}{c |}
+     {c LT}{hline 5}{c -}{hline 17}{c -}{hline 10}{c -}{hline 10}{c RT}
+  6. {c |} {res}  6         CCRPONTE    .0253207   .8888889 {txt}{c |}
+  7. {c |} {res}  7          CONCEBRA          1   .9134218 {txt}{c |}
+  8. {c |} {res}  8         CONCEPA     .1230568   .7190304 {txt}{c |}
+  9. {c |} {res}  9            CONCER    .180785   .8926107 {txt}{c |}
+ 10. {c |} {res} 10               CRO   .9060524    .985593 {txt}{c |}
+     {c LT}{hline 5}{c -}{hline 17}{c -}{hline 10}{c -}{hline 10}{c RT}
+ 11. {c |} {res} 11               CRT   .2226738   .9478757 {txt}{c |}
+ 12. {c |} {res} 12            ECO101   .6808634   .8459402 {txt}{c |}
+ 13. {c |} {res} 13          ECOPONTE          1          1 {txt}{c |}
+ 14. {c |} {res} 14            ECOSUL          1          1 {txt}{c |}
+ 15. {c |} {res} 15       MGORODOVIAS   .6971925   .9517775 {txt}{c |}
+     {c LT}{hline 5}{c -}{hline 17}{c -}{hline 10}{c -}{hline 10}{c RT}
+ 16. {c |} {res} 16             MSVIA          1   .8857613 {txt}{c |}
+ 17. {c |} {res} 17         NOVADUTRA   .5338981   .9845045 {txt}{c |}
+ 18. {c |} {res} 18      RODOVIADOACO          1          1 {txt}{c |}
+ 19. {c |} {res} 19   TRANSBRASILIANA          1          1 {txt}{c |}
+ 20. {c |} {res} 20            VIA040          1          1 {txt}{c |}
+     {c LT}{hline 5}{c -}{hline 17}{c -}{hline 10}{c -}{hline 10}{c RT}
+ 21. {c |} {res} 21          VIABAHIA   .6982967   .8537034 {txt}{c |}
+     {c BLC}{hline 5}{c -}{hline 17}{c -}{hline 10}{c -}{hline 10}{c BRC}
+
+{com}. /************************************************************************
+> SECOND-STAGE REGRESSION ANALYSIS - TOBIT
+> 
+> *************************************************************************/
+. * variáveis explicativas
+. global reglist npp ext tar dEtapa2 dEtapa3
+{txt}
+{com}. 
+. tabstat $reglist, columns(statistics) statistics(mean sd median min max) format(%7.0g)
+
+{txt}{ralign 12:variable} {...}
+{c |}      mean        sd       p50       min       max
+{hline 13}{c +}{hline 50}
+{ralign 12:npp} {...}
+{c |}{...}
+   {res}  5.381     3.041         5         1        11
+{txt}{ralign 12:ext} {...}
+{c |}{...}
+   {res} 452.42    311.73       402      13.2    1176.5
+{txt}{ralign 12:tar} {...}
+{c |}{...}
+   {res} 4.9443    2.9474       3.6       1.4     12.22
+{txt}{ralign 12:dEtapa2} {...}
+{c |}{...}
+   {res} .38095    .49761         0         0         1
+{txt}{ralign 12:dEtapa3} {...}
+{c |}{...}
+   {res} .33333    .48305         0         0         1
+{txt}{hline 13}{c BT}{hline 50}
+
+{com}.  
+. * (Naive) Censored Regression Analysis - eficiência orientada a input
+. /*
+> quietly: stepwise, pr(.20): tobit deascore_i $reglist, ul(1) /* backward selection */
+> eststo tob_inp
+> */
+. 
+. * (Naive) Censored Regression Analysis - eficiência orientada a output
+. quietly: stepwise, pr(.20): tobit deascore_o $reglist, ul(1) /* backward selection */
+{txt}
+{com}. eststo tob_out
+{txt}
+{com}. 
+. /************************************************************************
+> SECOND-STAGE REGRESSION ANALYSIS - Procedimento Simar & Wilson (2007)
+> 
+> *************************************************************************/
+. * Simar & Wilson (2007) Procedure - orientado a input
+. // simarwilson deascore_i $reglist, unit dots reps(1999) 
+. // eststo sw_inp
+. 
+. * Simar & Wilson (2007) Procedure - orientado a output
+. simarwilson deascore_o $reglist, unit dots reps(1999)
+
+{txt}Bootstrap replications ({res}1999{txt})
+{hline 4}{c +}{hline 3} 1 {hline 3}{c +}{hline 3} 2 {hline 3}{c +}{hline 3} 3 {hline 3}{c +}{hline 3} 4 {hline 3}{c +}{hline 3} 5
+.................................................. 50
+.................................................. 100
+.................................................. 150
+.................................................. 200
+.................................................. 250
+.................................................. 300
+.................................................. 350
+.................................................. 400
+.................................................. 450
+.................................................. 500
+.................................................. 550
+.................................................. 600
+.................................................. 650
+.................................................. 700
+.................................................. 750
+.................................................. 800
+.................................................. 850
+.................................................. 900
+.................................................. 950
+.................................................. 1000
+.................................................. 1050
+.................................................. 1100
+.................................................. 1150
+.................................................. 1200
+.................................................. 1250
+.................................................. 1300
+.................................................. 1350
+.................................................. 1400
+.................................................. 1450
+.................................................. 1500
+.................................................. 1550
+.................................................. 1600
+.................................................. 1650
+.................................................. 1700
+.................................................. 1750
+.................................................. 1800
+.................................................. 1850
+.................................................. 1900
+.................................................. 1950
+................................................. 1999
+
+
+
+Simar & Wilson (2007) eff. analysis      Number of obs             =  {res}      21
+                                         {txt}Number of efficient obs   =  {res}       6
+                                         {txt}Number of bootstr. reps   =  {res}    1999
+{txt}inefficient if deascore_o{res} < {txt}1            Wald chi2({res}5{txt})              =  {res}   24.31
+{txt}twosided truncation                      Prob > Chi2({res}5{txt})            =  {res}  0.0002
+
+{txt}{hline 13}{c TT}{hline 64}
+{col 13} {c |}  Observed   Bootstrap                           Percentile
+{col 3}efficiency {c |}      Coef.   Std. Err.      z    P>|z|     [{res}95{txt}% Conf. Interval]
+{hline 13}{c +}{hline 64}
+{res}deascore_o   {txt}{c |}
+{res}{col 10}{txt}npp {c |}  {res}-.0790779   .0185672    -4.26   0.000    -.1141351   -.0427894
+{col 10}{txt}ext {c |}  {res} .0005698    .000135     4.22   0.000     .0003142    .0008437
+{col 10}{txt}tar {c |}  {res}-.0063475   .0077716    -0.82   0.414    -.0218549    .0086718
+{col 6}{txt}dEtapa2 {c |}  {res} .0537055   .0610847     0.88   0.379    -.0634504    .1760283
+{col 6}{txt}dEtapa3 {c |}  {res} .1596389   .0647971     2.46   0.014     .0289999    .2908315
+{col 8}{txt}_cons {c |}  {res}  1.02215   .0791942    12.91   0.000     .8694458    1.188686
+{txt}{hline 13}{c +}{hline 64}
+{col 7}/sigma {c |}  {res} .0414514   .0079797     5.19   0.000     .0175012    .0483966
+{txt}{hline 13}{c BT}{hline 64}
+
+{com}. eststo sw_out
+{txt}
+{com}. 
+. /*estimates table tob_inp sw_inp tob_out sw_out, b stats(N r2 r2_o r2_b r2_w F chi2) star (.05 .1 .2)*/
+. 
+. estimates table tob_out sw_out, b stats(N r2 r2_o r2_b r2_w F chi2) star (.05 .1 .2)
+{res}
+{txt}{hline 12}{c -}{c TT}{c -}{hline 13}{c -}{c -}{c -}{hline 13}{c -}{c -}
+{ralign 12:Variable} {c |} {center 13:tob_out} {space 1} {center 13:sw_out} {space 1}
+{hline 12}{c -}{c +}{c -}{hline 13}{c -}{c -}{c -}{hline 13}{c -}{c -}
+{res}{txt}{res}deascore_o   {txt}{c |}{res}
+{txt}{space 9}npp {c |}{res} {ralign 10:-.0647274}{lalign 3:***}{txt} {space 1}{res} {ralign 10:-.07907791}{lalign 3:***}{txt} {space 1}
+{res}{txt}{space 9}ext {c |}{res} {ralign 10:.00048538}{lalign 3:***}{txt} {space 1}{res} {ralign 10:.00056978}{lalign 3:***}{txt} {space 1}
+{res}{txt}{space 5}dEtapa3 {c |}{res} {ralign 10:.16408855}{lalign 3:**}{txt} {space 1}{res} {ralign 10:.15963892}{lalign 3:***}{txt} {space 1}
+{res}{txt}{space 5}dEtapa2 {c |}{res} {ralign 10:.11056788}{lalign 3:**}{txt} {space 1}{res} {ralign 10:.05370551}{lalign 3:}{txt} {space 1}
+{res}{txt}{space 9}tar {c |}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:-.00634754}{lalign 3:}{txt} {space 1}
+{res}{txt}{space 7}_cons {c |}{res} {ralign 10:.96628031}{lalign 3:***}{txt} {space 1}{res} {ralign 10:1.0221503}{lalign 3:***}{txt} {space 1}
+{res}{txt}{hline 12}{c -}{c +}{c -}{hline 13}{c -}{c -}{c -}{hline 13}{c -}{c -}
+{res}{txt}var(e.deas~o){c |}{res} {ralign 10:.00663047}{lalign 3:***}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}
+{res}{txt}{hline 12}{c -}{c +}{c -}{hline 13}{c -}{c -}{c -}{hline 13}{c -}{c -}
+{res}{txt}{res}sigma        {txt}{c |}{res}
+{txt}{space 7}_cons {c |}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:.04145142}{lalign 3:***}{txt} {space 1}
+{res}{txt}{hline 12}{c -}{c +}{c -}{hline 13}{c -}{c -}{c -}{hline 13}{c -}{c -}
+{res}{lalign 12:Statistics}{txt} {c |} {center 13:} {space 1} {center 13:} {space 1}
+{res}{txt}{ralign 12:N} {c |}{res} {ralign 10:21}{lalign 3:}{txt} {space 1}{res} {ralign 10:21}{lalign 3:}{txt} {space 1}
+{res}{txt}{ralign 12:r2} {c |}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}
+{res}{txt}{ralign 12:r2_o} {c |}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}
+{res}{txt}{ralign 12:r2_b} {c |}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}
+{res}{txt}{ralign 12:r2_w} {c |}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}
+{res}{txt}{ralign 12:F} {c |}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}
+{res}{txt}{ralign 12:chi2} {c |}{res} {ralign 10:6.9216591}{lalign 3:}{txt} {space 1}{res} {ralign 10:24.313056}{lalign 3:}{txt} {space 1}
+{res}{txt}{hline 12}{c -}{c BT}{c -}{hline 13}{c -}{c -}{c -}{hline 13}{c -}{c -}
+{ralign 46:legend: * p<.2; ** p<.1; *** p<.05}
+{res}{txt}
+{com}.  
+. /*
+> #############################################################################
+> Conclusão da análise:
+> 
+> - Em nenhum dos modelos se pode concluir que a 5% de significância pelo menos 
+> um dos coeficientes não é igual a zero. 
+> - Para o nível de significância de 5%, em princípio, não é necessário realizar
+> correções por meio das variáveis de ambiente.
+> 
+> */
+. 
+. ********************************************************************************
+. * adotando outro código, o algoritmo fica bem mais simples:
+. ********************************************************************************
+. 
+. teradialbc $out = $inp, rts(vrs) base(o) heterogeneous tename(score) tebc(scorebc) biasboot(te1bias) varboot(te1var) biassqvar(te1biassqvar) telower(te1lower) teupper(te1upper) reps(1000)
+{res}{txt}{res}
+{p 1 1 7 83} {text}Radial (Debreu-Farrell) {input:output}{text}-based measures of technical efficiency under assumption of {input:VRS} {text} technology are computed for the following data:{p_end}
+
+    Number of data points ({input:K}{text}) = {res}21
+{txt}    Number of outputs     ({input:M}{text}) = {res}1
+{txt}    Number of inputs      ({input:N}{text}) = {res}2
+
+{p 1 1 7 83} {text}Data for reference set are not provided. Reference set is formed by {res}21{res}{text} data points, for which measures of technical efficiency are computed.{p_end}
+{p 1 1 7 83}{text}{hline 75}{p_end}
+{res}
+{p 1 1 7 83} {text}Bootstrapping reference set formed by {res}21{res}{text} data points and computing radial (Debreu-Farrell) {input: output}{text}-based measures of technical efficiency under assumption of {input:VRS}{text} technology for each of {res}21{res}{text} data points relative to the bootstrapped reference set {text} {p_end}
+
+ Smoothed {com}heterogeneous{txt} bootstrap ({res}1000{txt} replications)
+
+{hline 4}{c +}{hline 3} 1 {hline 3}{c +}{hline 3} 2 {hline 3}{c +}{hline 3} 3 {hline 3}{c +}{hline 3} 4 {hline 3}{c +}{hline 3} 5 
+{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.    50
+{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.   100
+{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.   150
+{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.   200
+{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.   250
+{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.   300
+{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.   350
+{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.   400
+{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.   450
+{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.   500
+{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.   550
+{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.   600
+{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.   650
+{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.   700
+{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.   750
+{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.   800
+{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.   850
+{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.   900
+{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.   950
+{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.{res}{txt}{res}{txt}{res}{txt}.  1000
+{res}{txt}
+{com}. 
+. * (Naive) Censored Regression Analysis - eficiência orientada a output
+. tobit scorebc $reglist,  ll(1) /* backward selection */
+{res}{txt}
+Refining starting values:
+
+Grid node 0:{space 3}log likelihood = {res: 13.722433}
+
+Fitting full model:
+{res}
+{txt}Iteration 0:{space 3}log likelihood = {res: 13.722433}  
+Iteration 1:{space 3}log likelihood = {res: 13.722433}  
+{res}
+{txt}Tobit regression{col 49}Number of obs{col 67}= {res}         9
+{txt}{col 49}   Uncensored    {col 67}= {res}         9
+{txt}Limits: lower = {res}1{txt}{col 49}   Left-censored {col 67}= {res}         0
+{txt}        upper = {res}+inf{txt}{col 49}   Right-censored{col 67}= {res}         0
+
+{txt}{col 49}LR chi2({res}5{txt}){col 67}= {res}     15.29
+{txt}{col 49}Prob > chi2{col 67}= {res}    0.0092
+{txt}Log likelihood = {res} 13.722433{txt}{col 49}Pseudo R2{col 67}= {res}   -1.2575
+
+{txt}{hline 15}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}       scorebc{col 16}{c |}      Coef.{col 28}   Std. Err.{col 40}      t{col 48}   P>|t|{col 56}     [95% Con{col 69}f. Interval]
+{hline 15}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 11}npp {c |}{col 16}{res}{space 2} .1429221{col 28}{space 2} .0291332{col 39}{space 1}    4.91{col 48}{space 3}0.008{col 56}{space 4} .0620353{col 69}{space 3} .2238088
+{txt}{space 11}ext {c |}{col 16}{res}{space 2}-.0014268{col 28}{space 2}  .000289{col 39}{space 1}   -4.94{col 48}{space 3}0.008{col 56}{space 4}-.0022292{col 69}{space 3}-.0006244
+{txt}{space 11}tar {c |}{col 16}{res}{space 2} .0276057{col 28}{space 2} .0117484{col 39}{space 1}    2.35{col 48}{space 3}0.079{col 56}{space 4}-.0050131{col 69}{space 3} .0602246
+{txt}{space 7}dEtapa2 {c |}{col 16}{res}{space 2}-.1149894{col 28}{space 2} .0755123{col 39}{space 1}   -1.52{col 48}{space 3}0.202{col 56}{space 4} -.324645{col 69}{space 3} .0946662
+{txt}{space 7}dEtapa3 {c |}{col 16}{res}{space 2}-.0587753{col 28}{space 2} .0832228{col 39}{space 1}   -0.71{col 48}{space 3}0.519{col 56}{space 4}-.2898389{col 69}{space 3} .1722884
+{txt}{space 9}_cons {c |}{col 16}{res}{space 2} .8987189{col 28}{space 2} .1181627{col 39}{space 1}    7.61{col 48}{space 3}0.002{col 56}{space 4} .5706466{col 69}{space 3} 1.226791
+{txt}{hline 15}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 1}var(e.scorebc){c |}{col 16}{res}{space 2} .0027744{col 28}{space 2} .0013079{col 56}{space 4} .0007495{col 69}{space 3} .0102705
+{txt}{hline 15}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+
+{com}. eststo tob_out1
+{txt}
+{com}. 
+. * Algoritmo #2 de Simar-Wilson (2007)
+. simarwilson scorebc $reglist, nounit reps(2000) dots
+
+{txt}Bootstrap replications ({res}2000{txt})
+{hline 4}{c +}{hline 3} 1 {hline 3}{c +}{hline 3} 2 {hline 3}{c +}{hline 3} 3 {hline 3}{c +}{hline 3} 4 {hline 3}{c +}{hline 3} 5
+.................................................. 50
+.................................................. 100
+.................................................. 150
+.............{err}x{txt}....................{err}x{txt}............... 200
+..............................................{err}x{txt}... 250
+.................................................. 300
+..........................................{err}x{txt}....... 350
+.........................{err}x{txt}........................ 400
+.................................................. 450
+.................................................. 500
+.................................................. 550
+.................................................. 600
+.................................................. 650
+............................................{err}x{txt}..... 700
+.......................{err}x{txt}.......................... 750
+.................................................. 800
+....................{err}x{txt}............................. 850
+............{err}x{txt}..................................... 900
+.................................................. 950
+.................................................. 1000
+.................................................. 1050
+.................................................. 1100
+.......................................{err}x{txt}.......... 1150
+.................................................. 1200
+......{err}x{txt}........................................... 1250
+.................................................. 1300
+.............{err}x{txt}.................................... 1350
+.......................................{err}x{txt}.......... 1400
+.................................................. 1450
+.................................................. 1500
+.................................................. 1550
+..............{err}x{txt}................................... 1600
+.................................................. 1650
+.................................................. 1700
+.................................................. 1750
+....................................{err}x{txt}............. 1800
+..................{err}x{txt}............................... 1850
+.................................................. 1900
+......................{err}x{txt}........................... 1950
+.................................................. 2000
+................. 2017
+
+
+
+Simar & Wilson (2007) eff. analysis      Number of obs             =  {res}       9
+                                         {txt}Number of efficient obs   =  {res}       0
+                                         {txt}Number of bootstr. reps   =  {res}    2000
+                                         {txt}Wald chi2({res}4{txt})              =  {res}   28.85
+{txt}inefficient if scorebc{res} > {txt}1               Prob > Chi2({res}4{txt})            =  {res}  0.0000
+
+{txt}{hline 13}{c TT}{hline 64}
+{col 13} {c |}  Observed   Bootstrap                           Percentile
+{col 3}efficiency {c |}      Coef.   Std. Err.      z    P>|z|     [{res}95{txt}% Conf. Interval]
+{hline 13}{c +}{hline 64}
+{res}scorebc      {txt}{c |}
+{res}{col 10}{txt}npp {c |}  {res} .1587469   .0368956     4.30   0.000     .0889275    .2345056
+{col 10}{txt}ext {c |}  {res}-.0016514   .0004177    -3.95   0.000    -.0026241   -.0009518
+{col 10}{txt}tar {c |}  {res} .0298453   .0135035     2.21   0.027     .0038588    .0570226
+{col 6}{txt}dEtapa2 {c |}  {res}-.1101567    .094312    -1.17   0.243    -.2988547    .0867922
+{col 6}{txt}dEtapa3 {c |}  {res}-.0803889   .1361892    -0.59   0.555    -.3551785      .12071
+{col 8}{txt}_cons {c |}  {res}  .871234   .1382183     6.30   0.000     .6092442    1.145036
+{txt}{hline 13}{c +}{hline 64}
+{col 7}/sigma {c |}  {res} .0586793   .0137457     4.27   0.000     .0085902    .0605905
+{txt}{hline 13}{c BT}{hline 64}
+
+{com}. eststo sw_out1
+{txt}
+{com}. 
+. predict ohat
+{txt}
+{com}. 
+. * valores de eficiência entre 0 e 1
+. gen deascore_bc = 1./scorebc
+{txt}(12 missing values generated)
+
+{com}. replace deascore_bc = 1 if deascore_bc > 1
+{txt}(12 real changes made)
+
+{com}. 
+. gen deascore_ohat = 1./ohat
+{txt}
+{com}. replace deascore_ohat = 1 if deascore_ohat > 1
+{txt}(8 real changes made)
+
+{com}. 
+. 
+. tabstat deascore_o deascore_bc deascore_ohat, columns(statistics) statistics(mean sd median min max) format(%7.0g)
+
+{txt}{ralign 12:variable} {...}
+{c |}      mean        sd       p50       min       max
+{hline 13}{c +}{hline 50}
+{ralign 12:deascore_o} {...}
+{c |}{...}
+   {res}  .9185    .07844    .91342    .71903         1
+{txt}{ralign 12:deascore_bc} {...}
+{c |}{...}
+   {res} .94579    .08376         1     .6794         1
+{txt}{ralign 12:deascore_o~t} {...}
+{c |}{...}
+   {res} .92255    .08806    .96091      .713         1
+{txt}{hline 13}{c BT}{hline 50}
+
+{com}. 
+. estimates table tob_out1 sw_out1, b stats(N r2 r2_o r2_b r2_w F chi2) star (.05 .1 .2)
+{res}
+{txt}{hline 12}{c -}{c TT}{c -}{hline 13}{c -}{c -}{c -}{hline 13}{c -}{c -}
+{ralign 12:Variable} {c |} {center 13:tob_out1} {space 1} {center 13:sw_out1} {space 1}
+{hline 12}{c -}{c +}{c -}{hline 13}{c -}{c -}{c -}{hline 13}{c -}{c -}
+{res}{txt}{res}scorebc      {txt}{c |}{res}
+{txt}{space 9}npp {c |}{res} {ralign 10:.14292207}{lalign 3:***}{txt} {space 1}{res} {ralign 10:.15874692}{lalign 3:***}{txt} {space 1}
+{res}{txt}{space 9}ext {c |}{res} {ralign 10:-.00142678}{lalign 3:***}{txt} {space 1}{res} {ralign 10:-.00165142}{lalign 3:***}{txt} {space 1}
+{res}{txt}{space 9}tar {c |}{res} {ralign 10:.02760574}{lalign 3:**}{txt} {space 1}{res} {ralign 10:.02984526}{lalign 3:***}{txt} {space 1}
+{res}{txt}{space 5}dEtapa2 {c |}{res} {ralign 10:-.1149894}{lalign 3:}{txt} {space 1}{res} {ralign 10:-.11015672}{lalign 3:}{txt} {space 1}
+{res}{txt}{space 5}dEtapa3 {c |}{res} {ralign 10:-.05877528}{lalign 3:}{txt} {space 1}{res} {ralign 10:-.08038888}{lalign 3:}{txt} {space 1}
+{res}{txt}{space 7}_cons {c |}{res} {ralign 10:.89871892}{lalign 3:***}{txt} {space 1}{res} {ralign 10:.87123403}{lalign 3:***}{txt} {space 1}
+{res}{txt}{hline 12}{c -}{c +}{c -}{hline 13}{c -}{c -}{c -}{hline 13}{c -}{c -}
+{res}{txt}var(e.scor~c){c |}{res} {ralign 10:.00277444}{lalign 3:*}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}
+{res}{txt}{hline 12}{c -}{c +}{c -}{hline 13}{c -}{c -}{c -}{hline 13}{c -}{c -}
+{res}{txt}{res}sigma        {txt}{c |}{res}
+{txt}{space 7}_cons {c |}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:.05867926}{lalign 3:***}{txt} {space 1}
+{res}{txt}{hline 12}{c -}{c +}{c -}{hline 13}{c -}{c -}{c -}{hline 13}{c -}{c -}
+{res}{lalign 12:Statistics}{txt} {c |} {center 13:} {space 1} {center 13:} {space 1}
+{res}{txt}{ralign 12:N} {c |}{res} {ralign 10:9}{lalign 3:}{txt} {space 1}{res} {ralign 10:9}{lalign 3:}{txt} {space 1}
+{res}{txt}{ralign 12:r2} {c |}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}
+{res}{txt}{ralign 12:r2_o} {c |}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}
+{res}{txt}{ralign 12:r2_b} {c |}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}
+{res}{txt}{ralign 12:r2_w} {c |}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}
+{res}{txt}{ralign 12:F} {c |}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}
+{res}{txt}{ralign 12:chi2} {c |}{res} {ralign 10:15.287519}{lalign 3:}{txt} {space 1}{res} {ralign 10:28.854777}{lalign 3:}{txt} {space 1}
+{res}{txt}{hline 12}{c -}{c BT}{c -}{hline 13}{c -}{c -}{c -}{hline 13}{c -}{c -}
+{ralign 46:legend: * p<.2; ** p<.1; *** p<.05}
+{res}{txt}
+{com}. 
+. * close log file
+. log close
+      {txt}name:  {res}<unnamed>
+       {txt}log:  {res}C:\Dropbox\ANTT\AR-2017-2018\Fator X\1.PROJETO\STATA\Analysis-DEA-SFA\DEA3. 7 Dec 201715_31_21\logDEA3. 7 Dec 201715_31_21
+  {txt}log type:  {res}smcl
+ {txt}closed on:  {res} 7 Dec 2017, 15:34:06
+{txt}{.-}
+{smcl}
+{txt}{sf}{ul off}

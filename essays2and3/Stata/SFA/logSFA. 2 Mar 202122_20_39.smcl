@@ -1,0 +1,208 @@
+{smcl}
+{txt}{sf}{ul off}{.-}
+      name:  {res}<unnamed>
+       {txt}log:  {res}D:\Google Drive\_DOUTORADO\__TESE\__CODEandDATA\__TESE_code-data\efficiency\Stata\SFA\logSFA. 2 Mar 202122_20_39.smcl
+  {txt}log type:  {res}smcl
+ {txt}opened on:  {res} 2 Mar 2021, 22:20:39
+{txt}
+{com}. 
+. /************************************************************************
+> (3) ANÁLISE SFA, TOMANDO COMO VARIÁVEIS:
+> - INPUTS: REC; CUST;
+> - OUTPUTS: AVG 
+> 
+> OUTPUT ORIENTED
+> *************************************************************************/
+. * set the directory to the location of .ado files 
+. * .ado files from:
+. *
+. * A Practitioner's Guide to Stochastic Frontier Analysis Using Stata         
+. * Subal C. Kumbhakar, Hung-Jen Wang and Alan P. Horncastle                     
+. *                                                                               
+. //adopath ++ "C:\ado\personal\sfbook\sfbook_ado"
+. 
+. // apaga qualquer unidade que tenha valor de receita ou custo nulo 
+. //drop if rec  <=0 
+. //drop if cust <=0
+. 
+. /*
+> subsititui os id's originais por id's para dados em painel (um id para cada concessionária)
+> */
+. // lista de concessionárias na base de dados 
+. levelsof conc, local(concs)
+{res}{txt}`"AUTOFERNAODIAS"' `"AUTOFLUMINENSE"' `"AUTOLITORALSUL"' `"AUTOPLANALTOSUL"' `"AUTOREGIS"' `"CCRPONTE"' `"CONCEBRA"' `"CONCEPA"' `"CONCER"' `"CRO"' `"CRT"' `"ECO101"' `"ECOPONTE"' `"ECOSUL"' `"MGORODOVIAS"' `"MSVIA"' `"NOVADUTRA"' `"RODOVIADOACO"' `"TRANSBRASILIANA"' `"VIA040"' `"VIABAHIA"'
+
+{com}. // contador local para gerar id
+. local count 1
+{txt}
+{com}. // loop na lista de concessionárias
+. foreach v in `concs'{c -(}
+{txt}  2{com}.         
+.         // substitui o id original, para os casos em que há match entre o nome da
+.         // concessionária na base e na lista de nomes 
+.         quietly replace id = `count' if conc == "`v'"
+{txt}  3{com}.         local ++count // atualiza o contador de id
+{txt}  4{com}. {c )-}
+{txt}
+{com}. 
+. // gera variáveis dummy para marcar as etapas
+. quietly gen dEtapa2 = (etp==2)
+{txt}
+{com}. quietly gen dEtapa3 = (etp==3)
+{txt}
+{com}. 
+. // Como a análise na parte (1) indicou não haver variação relevante nas variáveis ao longo do tempo, optou-se por calcular as médias do período das variáveis de input e output
+. quietly bysort id: egen custm = mean(cust_km_adj)
+{txt}
+{com}. quietly bysort id: egen recm = mean(rec_km_adj)
+{txt}
+{com}. quietly bysort id: egen avgm = mean(avg)
+{txt}
+{com}. quietly bysort id: egen tarm = mean(tar_adj)
+{txt}
+{com}. // identifica duplicatas
+. quietly by id: gen dup = cond(_N==1, 0, _n)
+{txt}
+{com}. // apaga duplicatas
+. drop if dup > 1
+{txt}(61 observations deleted)
+
+{com}. 
+. // gera índices para as DMUs
+. quietly gen dmu = id
+{txt}
+{com}. 
+. // apaga variáveis dispensáveis para a análise DEA
+. //quietly drop id ano anoconc cust cust_km rec rec_km avg dup
+. 
+. // salva dados para simulação DEA
+. save data_sfa, replace
+{txt}file data_sfa.dta saved
+
+{com}. 
+. /*
+> gera logaritmo das variáveis para a função de produção Cobb-Douglas
+> 
+> */
+. gen l_rec = log(recm)
+{txt}
+{com}. gen l_cust = log(custm)
+{txt}
+{com}. gen l_avg = log(avgm)
+{txt}
+{com}. 
+. // define inputs e outputs da análise SFA
+. global inp l_cust l_rec
+{txt}
+{com}. global out l_avg
+{txt}
+{com}. 
+. * variáveis explicativas
+. global reglist npp tarm dEtapa2 dEtapa3 
+{txt}
+{com}. 
+. ********************************************************************************************
+. * Testa se o modelo especificado é válido antes de proceder com as estimativas
+. * Foi utilizado o teste do terceiro momento do resíduo OLS (M3T) de Coelli (1995)
+. * para checar se os resíduos são assimétricos para a esquerda, o que confirmaria
+. * a possibilidade de ser utilizada a especificação para a função de produção. 
+. * Para uma função de produção de fronteira estocástica, o erro composto(v - u), u > 0 e v
+. * distribuído simetricamente em torno de zero, deve ter os resíduos da estimatica OLS
+. * enviesadas para a esquerda. 
+. ********************************************************************************************
+. //reg $out $inp
+. reg $out l_cust l_rec npp
+
+{txt}      Source {c |}       SS           df       MS      Number of obs   ={res}        21
+{txt}{hline 13}{c +}{hline 34}   F(3, 17)        = {res}     0.74
+{txt}       Model {c |} {res} .020804889         3  .006934963   {txt}Prob > F        ={res}    0.5441
+{txt}    Residual {c |} {res}  .15985852        17  .009403442   {txt}R-squared       ={res}    0.1152
+{txt}{hline 13}{c +}{hline 34}   Adj R-squared   ={res}   -0.0410
+{txt}       Total {c |} {res} .180663408        20   .00903317   {txt}Root MSE        =   {res} .09697
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}       l_avg{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 6}l_cust {c |}{col 14}{res}{space 2}-.0148946{col 26}{space 2}  .051928{col 37}{space 1}   -0.29{col 46}{space 3}0.778{col 54}{space 4}-.1244531{col 67}{space 3}  .094664
+{txt}{space 7}l_rec {c |}{col 14}{res}{space 2} .0046177{col 26}{space 2} .0528915{col 37}{space 1}    0.09{col 46}{space 3}0.931{col 54}{space 4}-.1069736{col 67}{space 3}  .116209
+{txt}{space 9}npp {c |}{col 14}{res}{space 2} -.011166{col 26}{space 2} .0123717{col 37}{space 1}   -0.90{col 46}{space 3}0.379{col 54}{space 4}-.0372679{col 67}{space 3}  .014936
+{txt}{space 7}_cons {c |}{col 14}{res}{space 2} 1.482379{col 26}{space 2}  .250774{col 37}{space 1}    5.91{col 46}{space 3}0.000{col 54}{space 4} .9532918{col 67}{space 3} 2.011465
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}{txt}
+{com}. predict e, residual
+{txt}
+{com}. sum e, detail
+
+                          {txt}Residuals
+{hline 61}
+      Percentiles      Smallest
+ 1%    {res}-.2423966      -.2423966
+{txt} 5%    {res}-.1050643      -.1050643
+{txt}10%    {res}-.0852994      -.0852994       {txt}Obs         {res}         21
+{txt}25%    {res}-.0558858      -.0724733       {txt}Sum of Wgt. {res}         21
+
+{txt}50%    {res}-.0137215                      {txt}Mean          {res}-4.43e-11
+                        {txt}Largest       Std. Dev.     {res} .0894032
+{txt}75%    {res} .0767824       .1008322
+{txt}90%    {res} .1031574       .1031574       {txt}Variance      {res} .0079929
+{txt}95%    {res} .1124005       .1124005       {txt}Skewness      {res}-.7135096
+{txt}99%    {res} .1184759       .1184759       {txt}Kurtosis      {res} 3.607638
+{txt}
+{com}. sktest e, noadj
+{res}
+{txt}Skewness and kurtosis tests for normality
+{col 58}{hline 3} Joint test {hline 3}
+{col 5}Variable {c |}{col 22}Obs   Pr(skewness)   Pr(kurtosis)   chi2(2)  Prob>chi2
+{hline 13}{c +}{hline 61}
+           e {c |}{res}{col 16}       21{col 34}0.1197{col 49}0.2205{col 56}     3.92{col 70}0.1407
+{txt}
+{com}. 
+. qnorm e
+{res}{txt}
+{com}. kdensity e
+{txt}(n() set to 21)
+{res}{txt}
+{com}. 
+. * notar que a distribuição é assimétrica para a esquerda (Skewness < 0)
+. quietly sum e
+{txt}
+{com}. local e_mean = r(mean)
+{txt}
+{com}. local N = r(N)
+{txt}
+{com}. egen double m2 = mean((e - `e_mean')^2)
+{txt}
+{com}. egen double m3 = mean((e - `e_mean')^3)
+{txt}
+{com}. gen double M3T = m3/sqrt(6*((m2)^3)/`N')
+{txt}
+{com}. //di "Como ", M3T[1], " é negativo, então os resíduos são assimétricos para a esquerda (rejeição de H0: não há assimetria). "
+. di  M3T[1]
+{res}-1.3348543
+{txt}
+{com}. 
+{txt}end of do-file
+
+{com}. do "C:\Users\carlo\AppData\Local\Temp\STD640_000000.tmp"
+{txt}
+{com}. *! Version 2021.02.23
+. ********************************************************************************
+. * Author: Carlos Eduardo Veras Neves                                                                       *
+. *                                                                              *
+. * Estimation of Technical Efficiency with SFA and DEA for Brazilian            *
+. * Federal Toll Road Concessions 
+. *                                                                              *
+. ********************************************************************************
+. * configuração inicial
+. set trace off
+{txt}
+{com}. 
+. clear all
+{res}{txt}
+{com}. 
+. set more off
+{txt}
+{com}. 
+. capture log close
+{smcl}
+{com}{sf}{ul off}

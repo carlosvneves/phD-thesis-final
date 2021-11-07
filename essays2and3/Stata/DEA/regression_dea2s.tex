@@ -1,0 +1,36 @@
+{
+\def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}
+\begin{tabular}{l*{2}{c}}
+\hline\hline
+            &\multicolumn{1}{c}{(1)}&\multicolumn{1}{c}{(2)}\\
+            &\multicolumn{1}{c}{tobscore}&\multicolumn{1}{c}{inefficiency}\\
+\hline
+main        &                     &                     \\
+npp         &      0.0154         &      0.0718         \\
+            &      (1.54)         &      (0.81)         \\
+[1em]
+tar         &     0.00185         &      0.0196         \\
+            &      (0.12)         &      (0.23)         \\
+[1em]
+dEtapa2     &     -0.0255         &     -0.0520         \\
+            &     (-0.24)         &     (-0.08)         \\
+[1em]
+dEtapa3     &     -0.0605         &      -0.300         \\
+            &     (-0.59)         &     (-0.62)         \\
+[1em]
+\_cons      &       1.041\sym{***}&      -0.472         \\
+            &      (7.37)         &     (-0.29)         \\
+\hline
+/           &                     &                     \\
+var(e.tobscore)&     0.00930\sym{**} &                     \\
+            &      (3.08)         &                     \\
+[1em]
+sigma       &                     &       0.153\sym{*}  \\
+            &                     &      (2.24)         \\
+\hline
+\(N\)       &          19         &          21         \\
+\hline\hline
+\multicolumn{3}{l}{\footnotesize \textit{t} statistics in parentheses}\\
+\multicolumn{3}{l}{\footnotesize \sym{*} \(p<0.05\), \sym{**} \(p<0.01\), \sym{***} \(p<0.001\)}\\
+\end{tabular}
+}

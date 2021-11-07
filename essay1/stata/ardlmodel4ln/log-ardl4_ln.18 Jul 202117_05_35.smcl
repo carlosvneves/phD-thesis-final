@@ -1,0 +1,81 @@
+{smcl}
+{txt}{sf}{ul off}{.-}
+      name:  {res}<unnamed>
+       {txt}log:  {res}D:\Google Drive\_DOUTORADO\__TESE\_TESE_3rd\Tese3rda\artigo1\stata\ardlmodel4ln\log-ardl4_ln.18 Jul 202117_05_35.smcl
+  {txt}log type:  {res}smcl
+ {txt}opened on:  {res}18 Jul 2021, 17:05:35
+{txt}
+{com}. 
+. 
+. gen t = tm(2002m11) + _n - 1
+{txt}
+{com}. tsset t, monthly
+{res}{txt}{col 9}time variable:  {res}{col 25}t, 2002m11 to 2019m12
+{txt}{col 17}delta:  {res}1 month
+{txt}
+{com}. 
+. /**********************************************
+> Modelo ARDL com séries como percentual do wp e 
+> desembolsos setoriais como percentual do wp e acumulados.
+> 
+> ***********************************************/
+. 
+. // ARDL regression
+. ardl fbcf cib curi embi er ibov ice ici iie ir lagr lcom lind linf /// 
+> nfsp wp poup tt wp, ///
+> lags(3 0 0 0 0 0 0 0 0 1 0 0 0 0 0 3 3 2 1) trendvar(t) regstore(ardl_model4_ln)
+{res}{txt}note: wp omitted because of collinearity
+note: L.wp omitted because of collinearity
+{err}Collinear variables detected.
+{txt}{search r(9), local:r(9);}
+
+end of do-file
+
+{search r(9), local:r(9);}
+
+{com}. do "C:\Users\carlo\AppData\Local\Temp\STD6bd4_000000.tmp"
+{txt}
+{com}. ardl fbcf cib curi embi er ibov ice ici iie ir lagr lcom lind linf /// 
+> nfsp wp poup tt wp, ///
+> lags(3 0 0 0 0 0 0 0 0 1 0 0 0 0 0 3 3 2 1) trendvar(t) regstore(ardl_model4_ln)
+{res}{txt}note: wp omitted because of collinearity
+note: L.wp omitted because of collinearity
+{err}Collinear variables detected.
+{txt}{search r(9), local:r(9);}
+
+end of do-file
+
+{search r(9), local:r(9);}
+
+{com}. summarize
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 10}v1 {c |}{res}        206       103.5    59.61124          1        206
+{txt}{space 8}fbcf {c |}{res}        206    12.58133    .2510867   12.05852   12.96432
+{txt}{space 9}cib {c |}{res}        206    4.799837    .2610993    4.43034   5.349913
+{txt}{space 8}curi {c |}{res}        206    4.380279    .0447472   4.295924   4.448516
+{txt}{space 8}embi {c |}{res}        206     5.65758    .4587274   4.985473   7.431384
+{txt}{hline 13}{c +}{hline 57}
+{space 10}er {c |}{res}        206     4.59296    .1815247   4.273327   5.076361
+{txt}{space 8}ibov {c |}{res}        206    10.77806    .5021023   9.213366   11.63285
+{txt}{space 9}ice {c |}{res}        206    4.566722    .1284211   4.229749    4.75359
+{txt}{space 9}ici {c |}{res}        206    4.588104    .1161755   4.283587   4.754452
+{txt}{space 9}iie {c |}{res}        206    4.631225    .1031718   4.443827    4.91852
+{txt}{hline 13}{c +}{hline 57}
+{space 10}ir {c |}{res}        206    5.705034    2.928797   .2684307   12.95039
+{txt}{space 8}lagr {c |}{res}        206      7.7199    .6936894    6.05862   10.34733
+{txt}{space 8}lcom {c |}{res}        206    6.962483    .9839125   5.046167   8.966229
+{txt}{space 8}lind {c |}{res}        206    6.594955    .5957534    4.70857   7.593466
+{txt}{space 8}linf {c |}{res}        206    7.817145    .6653276   5.988262   9.074794
+{txt}{hline 13}{c +}{hline 57}
+{space 8}ltot {c |}{res}        206    8.859662    .6022552   7.345398   10.54224
+{txt}{space 8}nfsp {c |}{res}        206   -1.499903    2.208936      -4.08       3.04
+{txt}{space 9}pib {c |}{res}        206    14.30413    .2074235   13.87556   14.53223
+{txt}{space 8}poup {c |}{res}        206    12.49543    .1931123   11.95011   12.83991
+{txt}{space 10}tt {c |}{res}        206    4.676223    .0971092   4.492002   4.887714
+{txt}{hline 13}{c +}{hline 57}
+{space 10}wp {c |}{res}        206    4.642353    .1305673   4.376042   4.847161
+{txt}{space 11}t {c |}{res}        206       616.5    59.61124        514        719
+
+{com}. exit, clear

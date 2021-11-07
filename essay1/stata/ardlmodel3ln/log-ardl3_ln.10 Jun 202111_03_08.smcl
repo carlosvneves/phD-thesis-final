@@ -1,0 +1,530 @@
+{smcl}
+{txt}{sf}{ul off}{.-}
+      name:  {res}<unnamed>
+       {txt}log:  {res}D:\Google Drive\_DOUTORADO\__TESE\_TESE_3rd\artigo1\stata\ardlmodel3ln\log-ardl3_ln.10 Jun 202111_03_08.smcl
+  {txt}log type:  {res}smcl
+ {txt}opened on:  {res}10 Jun 2021, 11:03:08
+{txt}
+{com}. 
+. 
+. gen t = tm(2002m11) + _n - 1
+{txt}
+{com}. tsset t, monthly
+{res}{txt}{col 9}time variable:  {res}{col 25}t, 2002m11 to 2019m12
+{txt}{col 17}delta:  {res}1 month
+{txt}
+{com}. 
+. /**********************************************
+> Modelo ARDL com séries como percentual do PIB e 
+> desembolsos totais como percentual do PIB e acumulados.
+> 
+> ***********************************************/
+. // ARDL regression
+. ardl fbcf cib curi embi er ibov ice ici iie ir ltot nfsp pib poup tt wp, ///
+> lags(3 0 0 0 0 0 0 0 0 0 0 0 3 3 0 1) trendvar(t) regstore(ardl_model3_ln) 
+{res}
+{txt}ARDL(3,0,0,0,0,0,0,0,0,0,0,0,3,3,0,1) regression
+
+{col 1}Sample:  2003m2 - 2019m12{col 49}Number of obs{col 67}= {res}       203
+{txt}{col 49}F({res}  26{txt},{res}    176{txt}){col 67}= {res}  36041.02
+{txt}{col 49}Prob > F{col 67}= {res}    0.0000
+{txt}{col 49}R-squared{col 67}= {res}    0.9998
+{txt}{col 49}Adj R-squared{col 67}= {res}    0.9998
+{txt}Log likelihood = {res} 865.97711{txt}{col 49}Root MSE{col 67}= {res}    0.0036
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        fbcf{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 8}fbcf {c |}
+{space 9}L1. {c |}{col 14}{res}{space 2} 2.151246{col 26}{space 2} .0548411{col 37}{space 1}   39.23{col 46}{space 3}0.000{col 54}{space 4} 2.043016{col 67}{space 3} 2.259477
+{txt}{space 9}L2. {c |}{col 14}{res}{space 2}-1.827435{col 26}{space 2}  .096673{col 37}{space 1}  -18.90{col 46}{space 3}0.000{col 54}{space 4}-2.018223{col 67}{space 3}-1.636648
+{txt}{space 9}L3. {c |}{col 14}{res}{space 2} .5991956{col 26}{space 2} .0548058{col 37}{space 1}   10.93{col 46}{space 3}0.000{col 54}{space 4} .4910344{col 67}{space 3} .7073569
+{txt}{space 12} {c |}
+{space 9}cib {c |}{col 14}{res}{space 2} .0039398{col 26}{space 2} .0063743{col 37}{space 1}    0.62{col 46}{space 3}0.537{col 54}{space 4}-.0086401{col 67}{space 3} .0165197
+{txt}{space 8}curi {c |}{col 14}{res}{space 2}  .055009{col 26}{space 2} .0403438{col 37}{space 1}    1.36{col 46}{space 3}0.174{col 54}{space 4}-.0246108{col 67}{space 3} .1346289
+{txt}{space 8}embi {c |}{col 14}{res}{space 2} .0030468{col 26}{space 2} .0021573{col 37}{space 1}    1.41{col 46}{space 3}0.160{col 54}{space 4}-.0012107{col 67}{space 3} .0073044
+{txt}{space 10}er {c |}{col 14}{res}{space 2}-.0083727{col 26}{space 2} .0077763{col 37}{space 1}   -1.08{col 46}{space 3}0.283{col 54}{space 4}-.0237195{col 67}{space 3} .0069742
+{txt}{space 8}ibov {c |}{col 14}{res}{space 2} .0040523{col 26}{space 2} .0032006{col 37}{space 1}    1.27{col 46}{space 3}0.207{col 54}{space 4}-.0022642{col 67}{space 3} .0103688
+{txt}{space 9}ice {c |}{col 14}{res}{space 2}  .013775{col 26}{space 2} .0130664{col 37}{space 1}    1.05{col 46}{space 3}0.293{col 54}{space 4} -.012012{col 67}{space 3}  .039562
+{txt}{space 9}ici {c |}{col 14}{res}{space 2}-.0087091{col 26}{space 2} .0154875{col 37}{space 1}   -0.56{col 46}{space 3}0.575{col 54}{space 4}-.0392741{col 67}{space 3}  .021856
+{txt}{space 9}iie {c |}{col 14}{res}{space 2}-.0034962{col 26}{space 2} .0055325{col 37}{space 1}   -0.63{col 46}{space 3}0.528{col 54}{space 4}-.0144147{col 67}{space 3} .0074224
+{txt}{space 10}ir {c |}{col 14}{res}{space 2}-.0004741{col 26}{space 2} .0002618{col 37}{space 1}   -1.81{col 46}{space 3}0.072{col 54}{space 4}-.0009908{col 67}{space 3} .0000425
+{txt}{space 8}ltot {c |}{col 14}{res}{space 2} -.000647{col 26}{space 2} .0012073{col 37}{space 1}   -0.54{col 46}{space 3}0.593{col 54}{space 4}-.0030296{col 67}{space 3} .0017357
+{txt}{space 8}nfsp {c |}{col 14}{res}{space 2} -.001698{col 26}{space 2} .0006671{col 37}{space 1}   -2.55{col 46}{space 3}0.012{col 54}{space 4}-.0030145{col 67}{space 3}-.0003815
+{txt}{space 12} {c |}
+{space 9}pib {c |}
+{space 9}--. {c |}{col 14}{res}{space 2} 1.037153{col 26}{space 2} .1089904{col 37}{space 1}    9.52{col 46}{space 3}0.000{col 54}{space 4} .8220571{col 67}{space 3}  1.25225
+{txt}{space 9}L1. {c |}{col 14}{res}{space 2}-2.310366{col 26}{space 2} .2342601{col 37}{space 1}   -9.86{col 46}{space 3}0.000{col 54}{space 4}-2.772686{col 67}{space 3}-1.848046
+{txt}{space 9}L2. {c |}{col 14}{res}{space 2} 1.921941{col 26}{space 2} .2582609{col 37}{space 1}    7.44{col 46}{space 3}0.000{col 54}{space 4} 1.412254{col 67}{space 3} 2.431628
+{txt}{space 9}L3. {c |}{col 14}{res}{space 2}-.5253087{col 26}{space 2}  .131733{col 37}{space 1}   -3.99{col 46}{space 3}0.000{col 54}{space 4}-.7852884{col 67}{space 3}-.2653291
+{txt}{space 12} {c |}
+{space 8}poup {c |}
+{space 9}--. {c |}{col 14}{res}{space 2} .1428284{col 26}{space 2}  .039269{col 37}{space 1}    3.64{col 46}{space 3}0.000{col 54}{space 4} .0653298{col 67}{space 3} .2203271
+{txt}{space 9}L1. {c |}{col 14}{res}{space 2}-.2512739{col 26}{space 2} .0878141{col 37}{space 1}   -2.86{col 46}{space 3}0.005{col 54}{space 4}-.4245781{col 67}{space 3}-.0779697
+{txt}{space 9}L2. {c |}{col 14}{res}{space 2} .2405559{col 26}{space 2} .0879399{col 37}{space 1}    2.74{col 46}{space 3}0.007{col 54}{space 4} .0670034{col 67}{space 3} .4141084
+{txt}{space 9}L3. {c |}{col 14}{res}{space 2}-.1128042{col 26}{space 2} .0384345{col 37}{space 1}   -2.93{col 46}{space 3}0.004{col 54}{space 4}-.1886561{col 67}{space 3}-.0369524
+{txt}{space 12} {c |}
+{space 10}tt {c |}{col 14}{res}{space 2}-.0332092{col 26}{space 2} .0105177{col 37}{space 1}   -3.16{col 46}{space 3}0.002{col 54}{space 4}-.0539663{col 67}{space 3}-.0124521
+{txt}{space 12} {c |}
+{space 10}wp {c |}
+{space 9}--. {c |}{col 14}{res}{space 2} .1214735{col 26}{space 2} .0638987{col 37}{space 1}    1.90{col 46}{space 3}0.059{col 54}{space 4}-.0046327{col 67}{space 3} .2475797
+{txt}{space 9}L1. {c |}{col 14}{res}{space 2}-.1976975{col 26}{space 2} .0632425{col 37}{space 1}   -3.13{col 46}{space 3}0.002{col 54}{space 4}-.3225087{col 67}{space 3}-.0728863
+{txt}{space 12} {c |}
+{space 11}t {c |}{col 14}{res}{space 2} .0000163{col 26}{space 2} .0001192{col 37}{space 1}    0.14{col 46}{space 3}0.891{col 54}{space 4}-.0002189{col 67}{space 3} .0002516
+{txt}{space 7}_cons {c |}{col 14}{res}{space 2}-.8222898{col 26}{space 2} .4055452{col 37}{space 1}   -2.03{col 46}{space 3}0.044{col 54}{space 4}-1.622647{col 67}{space 3}-.0219325
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+
+{com}. 
+. esttab ardl_model3_ln using "ardl_model3_ln.tex" , r2 ar2 p /// 
+> booktabs title("ARDL Desembolsos Totais ARDL(3,0,0,0,0,0,0,0,0,0,0,0,3,3,0,1)"\label{c -(}tab1{c )-}) ///
+> replace 
+{res}{txt}(note: file ardl_model3_ln.tex not found)
+(output written to {browse  `"ardl_model3_ln.tex"'})
+
+{com}. 
+. //4 0 0 0 0 0 0 2 3 0 2 2 3 1 2 2
+. // ECM LR and SR coefficients
+. ardl fbcf cib curi embi er ibov ice ici iie ir ltot nfsp pib poup tt wp, ///
+> lags(3 0 0 0 0 0 0 0 0 0 0 0 3 3 0 1) ec trendvar(t) restricted regstore(ecm_model3_ln) 
+{res}
+{txt}ARDL(3,0,0,0,0,0,0,0,0,0,0,0,3,3,0,1) regression
+
+{col 1}Sample:  2003m2 - 2019m12{col 49}Number of obs{col 67}= {res}       203
+{txt}{col 49}R-squared{col 67}= {res}    0.9528
+{txt}{col 49}Adj R-squared{col 67}= {res}    0.9458
+{txt}Log likelihood = {res} 865.97711{txt}{col 49}Root MSE{col 67}= {res}    0.0036
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}      D.fbcf{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}ADJ          {txt}{c |}
+{space 8}fbcf {c |}
+{space 9}L1. {c |}{col 14}{res}{space 2}-.0769933{col 26}{space 2} .0148508{col 37}{space 1}   -5.18{col 46}{space 3}0.000{col 54}{space 4}-.1063019{col 67}{space 3}-.0476847
+{txt}{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}LR           {txt}{c |}
+{space 9}cib {c |}{col 14}{res}{space 2} .0511707{col 26}{space 2} .0823141{col 37}{space 1}    0.62{col 46}{space 3}0.535{col 54}{space 4}-.1112789{col 67}{space 3} .2136203
+{txt}{space 8}curi {c |}{col 14}{res}{space 2} .7144655{col 26}{space 2} .4904909{col 37}{space 1}    1.46{col 46}{space 3}0.147{col 54}{space 4}-.2535352{col 67}{space 3} 1.682466
+{txt}{space 8}embi {c |}{col 14}{res}{space 2} .0395726{col 26}{space 2} .0282797{col 37}{space 1}    1.40{col 46}{space 3}0.163{col 54}{space 4}-.0162382{col 67}{space 3} .0953835
+{txt}{space 10}er {c |}{col 14}{res}{space 2}-.1087453{col 26}{space 2} .1046674{col 37}{space 1}   -1.04{col 46}{space 3}0.300{col 54}{space 4}  -.31531{col 67}{space 3} .0978194
+{txt}{space 8}ibov {c |}{col 14}{res}{space 2} .0526314{col 26}{space 2}  .041738{col 37}{space 1}    1.26{col 46}{space 3}0.209{col 54}{space 4}-.0297399{col 67}{space 3} .1350027
+{txt}{space 9}ice {c |}{col 14}{res}{space 2} .1789118{col 26}{space 2} .1686487{col 37}{space 1}    1.06{col 46}{space 3}0.290{col 54}{space 4}-.1539222{col 67}{space 3} .5117458
+{txt}{space 9}ici {c |}{col 14}{res}{space 2}-.1131146{col 26}{space 2} .1979698{col 37}{space 1}   -0.57{col 46}{space 3}0.568{col 54}{space 4}-.5038148{col 67}{space 3} .2775856
+{txt}{space 9}iie {c |}{col 14}{res}{space 2}-.0454089{col 26}{space 2} .0726087{col 37}{space 1}   -0.63{col 46}{space 3}0.533{col 54}{space 4}-.1887047{col 67}{space 3} .0978868
+{txt}{space 10}ir {c |}{col 14}{res}{space 2}-.0061582{col 26}{space 2} .0035677{col 37}{space 1}   -1.73{col 46}{space 3}0.086{col 54}{space 4}-.0131992{col 67}{space 3} .0008828
+{txt}{space 8}ltot {c |}{col 14}{res}{space 2}-.0084031{col 26}{space 2} .0157836{col 37}{space 1}   -0.53{col 46}{space 3}0.595{col 54}{space 4}-.0395526{col 67}{space 3} .0227465
+{txt}{space 8}nfsp {c |}{col 14}{res}{space 2}-.0220537{col 26}{space 2} .0086586{col 37}{space 1}   -2.55{col 46}{space 3}0.012{col 54}{space 4}-.0391416{col 67}{space 3}-.0049657
+{txt}{space 9}pib {c |}{col 14}{res}{space 2} 1.602995{col 26}{space 2} .4131602{col 37}{space 1}    3.88{col 46}{space 3}0.000{col 54}{space 4} .7876094{col 67}{space 3} 2.418381
+{txt}{space 8}poup {c |}{col 14}{res}{space 2} .2507524{col 26}{space 2} .1632675{col 37}{space 1}    1.54{col 46}{space 3}0.126{col 54}{space 4}-.0714617{col 67}{space 3} .5729665
+{txt}{space 10}tt {c |}{col 14}{res}{space 2} -.431326{col 26}{space 2} .1540662{col 37}{space 1}   -2.80{col 46}{space 3}0.006{col 54}{space 4}-.7353809{col 67}{space 3}-.1272712
+{txt}{space 10}wp {c |}{col 14}{res}{space 2}-.9900089{col 26}{space 2} .2932471{col 37}{space 1}   -3.38{col 46}{space 3}0.001{col 54}{space 4}-1.568742{col 67}{space 3}-.4112756
+{txt}{space 11}t {c |}{col 14}{res}{space 2} .0002121{col 26}{space 2}  .001565{col 37}{space 1}    0.14{col 46}{space 3}0.892{col 54}{space 4}-.0028764{col 67}{space 3} .0033006
+{txt}{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}SR           {txt}{c |}
+{space 8}fbcf {c |}
+{space 9}LD. {c |}{col 14}{res}{space 2}  1.22824{col 26}{space 2} .0471148{col 37}{space 1}   26.07{col 46}{space 3}0.000{col 54}{space 4} 1.135257{col 67}{space 3} 1.321222
+{txt}{space 8}L2D. {c |}{col 14}{res}{space 2}-.5991956{col 26}{space 2} .0548058{col 37}{space 1}  -10.93{col 46}{space 3}0.000{col 54}{space 4}-.7073569{col 67}{space 3}-.4910344
+{txt}{space 12} {c |}
+{space 9}pib {c |}
+{space 9}D1. {c |}{col 14}{res}{space 2} .9137335{col 26}{space 2} .0989304{col 37}{space 1}    9.24{col 46}{space 3}0.000{col 54}{space 4} .7184908{col 67}{space 3} 1.108976
+{txt}{space 9}LD. {c |}{col 14}{res}{space 2}-1.396632{col 26}{space 2} .1489669{col 37}{space 1}   -9.38{col 46}{space 3}0.000{col 54}{space 4}-1.690624{col 67}{space 3}-1.102641
+{txt}{space 8}L2D. {c |}{col 14}{res}{space 2} .5253087{col 26}{space 2}  .131733{col 37}{space 1}    3.99{col 46}{space 3}0.000{col 54}{space 4} .2653291{col 67}{space 3} .7852884
+{txt}{space 12} {c |}
+{space 8}poup {c |}
+{space 9}D1. {c |}{col 14}{res}{space 2} .1235222{col 26}{space 2} .0374763{col 37}{space 1}    3.30{col 46}{space 3}0.001{col 54}{space 4} .0495615{col 67}{space 3} .1974829
+{txt}{space 9}LD. {c |}{col 14}{res}{space 2}-.1277517{col 26}{space 2} .0523398{col 37}{space 1}   -2.44{col 46}{space 3}0.016{col 54}{space 4}-.2310461{col 67}{space 3}-.0244573
+{txt}{space 8}L2D. {c |}{col 14}{res}{space 2} .1128042{col 26}{space 2} .0384345{col 37}{space 1}    2.93{col 46}{space 3}0.004{col 54}{space 4} .0369524{col 67}{space 3} .1886561
+{txt}{space 12} {c |}
+{space 10}wp {c |}
+{space 9}D1. {c |}{col 14}{res}{space 2} .1976975{col 26}{space 2} .0632425{col 37}{space 1}    3.13{col 46}{space 3}0.002{col 54}{space 4} .0728863{col 67}{space 3} .3225087
+{txt}{space 12} {c |}
+{space 7}_cons {c |}{col 14}{res}{space 2}-.8222898{col 26}{space 2} .4055452{col 37}{space 1}   -2.03{col 46}{space 3}0.044{col 54}{space 4}-1.622647{col 67}{space 3}-.0219325
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+
+{com}. 
+. ardl fbcf cib curi embi er ibov ice ici iie ir ltot nfsp pib poup tt wp, ///
+> lags(3 0 0 0 0 0 0 0 0 0 0 0 3 3 0 1) ec1 trendvar(t) restricted regstore(ecm_model3_ln1) 
+{res}
+{txt}ARDL(3,0,0,0,0,0,0,0,0,0,0,0,3,3,0,1) regression
+
+{col 1}Sample:  2003m2 - 2019m12{col 49}Number of obs{col 67}= {res}       203
+{txt}{col 49}R-squared{col 67}= {res}    0.9528
+{txt}{col 49}Adj R-squared{col 67}= {res}    0.9458
+{txt}Log likelihood = {res} 865.97711{txt}{col 49}Root MSE{col 67}= {res}    0.0036
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}      D.fbcf{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}ADJ          {txt}{c |}
+{space 8}fbcf {c |}
+{space 9}L1. {c |}{col 14}{res}{space 2}-.0769933{col 26}{space 2} .0148508{col 37}{space 1}   -5.18{col 46}{space 3}0.000{col 54}{space 4}-.1063019{col 67}{space 3}-.0476847
+{txt}{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}LR           {txt}{c |}
+{space 9}cib {c |}
+{space 9}L1. {c |}{col 14}{res}{space 2} .0511707{col 26}{space 2} .0823141{col 37}{space 1}    0.62{col 46}{space 3}0.535{col 54}{space 4}-.1112789{col 67}{space 3} .2136203
+{txt}{space 12} {c |}
+{space 8}curi {c |}
+{space 9}L1. {c |}{col 14}{res}{space 2} .7144655{col 26}{space 2} .4904909{col 37}{space 1}    1.46{col 46}{space 3}0.147{col 54}{space 4}-.2535352{col 67}{space 3} 1.682466
+{txt}{space 12} {c |}
+{space 8}embi {c |}
+{space 9}L1. {c |}{col 14}{res}{space 2} .0395726{col 26}{space 2} .0282797{col 37}{space 1}    1.40{col 46}{space 3}0.163{col 54}{space 4}-.0162382{col 67}{space 3} .0953835
+{txt}{space 12} {c |}
+{space 10}er {c |}
+{space 9}L1. {c |}{col 14}{res}{space 2}-.1087453{col 26}{space 2} .1046674{col 37}{space 1}   -1.04{col 46}{space 3}0.300{col 54}{space 4}  -.31531{col 67}{space 3} .0978194
+{txt}{space 12} {c |}
+{space 8}ibov {c |}
+{space 9}L1. {c |}{col 14}{res}{space 2} .0526314{col 26}{space 2}  .041738{col 37}{space 1}    1.26{col 46}{space 3}0.209{col 54}{space 4}-.0297399{col 67}{space 3} .1350027
+{txt}{space 12} {c |}
+{space 9}ice {c |}
+{space 9}L1. {c |}{col 14}{res}{space 2} .1789118{col 26}{space 2} .1686487{col 37}{space 1}    1.06{col 46}{space 3}0.290{col 54}{space 4}-.1539222{col 67}{space 3} .5117458
+{txt}{space 12} {c |}
+{space 9}ici {c |}
+{space 9}L1. {c |}{col 14}{res}{space 2}-.1131146{col 26}{space 2} .1979698{col 37}{space 1}   -0.57{col 46}{space 3}0.568{col 54}{space 4}-.5038148{col 67}{space 3} .2775856
+{txt}{space 12} {c |}
+{space 9}iie {c |}
+{space 9}L1. {c |}{col 14}{res}{space 2}-.0454089{col 26}{space 2} .0726087{col 37}{space 1}   -0.63{col 46}{space 3}0.533{col 54}{space 4}-.1887047{col 67}{space 3} .0978868
+{txt}{space 12} {c |}
+{space 10}ir {c |}
+{space 9}L1. {c |}{col 14}{res}{space 2}-.0061582{col 26}{space 2} .0035677{col 37}{space 1}   -1.73{col 46}{space 3}0.086{col 54}{space 4}-.0131992{col 67}{space 3} .0008828
+{txt}{space 12} {c |}
+{space 8}ltot {c |}
+{space 9}L1. {c |}{col 14}{res}{space 2}-.0084031{col 26}{space 2} .0157836{col 37}{space 1}   -0.53{col 46}{space 3}0.595{col 54}{space 4}-.0395526{col 67}{space 3} .0227465
+{txt}{space 12} {c |}
+{space 8}nfsp {c |}
+{space 9}L1. {c |}{col 14}{res}{space 2}-.0220537{col 26}{space 2} .0086586{col 37}{space 1}   -2.55{col 46}{space 3}0.012{col 54}{space 4}-.0391416{col 67}{space 3}-.0049657
+{txt}{space 12} {c |}
+{space 9}pib {c |}
+{space 9}L1. {c |}{col 14}{res}{space 2} 1.602995{col 26}{space 2} .4131602{col 37}{space 1}    3.88{col 46}{space 3}0.000{col 54}{space 4} .7876094{col 67}{space 3} 2.418381
+{txt}{space 12} {c |}
+{space 8}poup {c |}
+{space 9}L1. {c |}{col 14}{res}{space 2} .2507524{col 26}{space 2} .1632675{col 37}{space 1}    1.54{col 46}{space 3}0.126{col 54}{space 4}-.0714617{col 67}{space 3} .5729665
+{txt}{space 12} {c |}
+{space 10}tt {c |}
+{space 9}L1. {c |}{col 14}{res}{space 2} -.431326{col 26}{space 2} .1540662{col 37}{space 1}   -2.80{col 46}{space 3}0.006{col 54}{space 4}-.7353809{col 67}{space 3}-.1272712
+{txt}{space 12} {c |}
+{space 10}wp {c |}
+{space 9}L1. {c |}{col 14}{res}{space 2}-.9900089{col 26}{space 2} .2932471{col 37}{space 1}   -3.38{col 46}{space 3}0.001{col 54}{space 4}-1.568742{col 67}{space 3}-.4112756
+{txt}{space 12} {c |}
+{space 11}t {c |}{col 14}{res}{space 2} .0002121{col 26}{space 2}  .001565{col 37}{space 1}    0.14{col 46}{space 3}0.892{col 54}{space 4}-.0028764{col 67}{space 3} .0033006
+{txt}{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}SR           {txt}{c |}
+{space 8}fbcf {c |}
+{space 9}LD. {c |}{col 14}{res}{space 2}  1.22824{col 26}{space 2} .0471148{col 37}{space 1}   26.07{col 46}{space 3}0.000{col 54}{space 4} 1.135257{col 67}{space 3} 1.321222
+{txt}{space 8}L2D. {c |}{col 14}{res}{space 2}-.5991956{col 26}{space 2} .0548058{col 37}{space 1}  -10.93{col 46}{space 3}0.000{col 54}{space 4}-.7073569{col 67}{space 3}-.4910344
+{txt}{space 12} {c |}
+{space 9}cib {c |}
+{space 9}D1. {c |}{col 14}{res}{space 2} .0039398{col 26}{space 2} .0063743{col 37}{space 1}    0.62{col 46}{space 3}0.537{col 54}{space 4}-.0086401{col 67}{space 3} .0165197
+{txt}{space 12} {c |}
+{space 8}curi {c |}
+{space 9}D1. {c |}{col 14}{res}{space 2}  .055009{col 26}{space 2} .0403438{col 37}{space 1}    1.36{col 46}{space 3}0.174{col 54}{space 4}-.0246108{col 67}{space 3} .1346289
+{txt}{space 12} {c |}
+{space 8}embi {c |}
+{space 9}D1. {c |}{col 14}{res}{space 2} .0030468{col 26}{space 2} .0021573{col 37}{space 1}    1.41{col 46}{space 3}0.160{col 54}{space 4}-.0012107{col 67}{space 3} .0073044
+{txt}{space 12} {c |}
+{space 10}er {c |}
+{space 9}D1. {c |}{col 14}{res}{space 2}-.0083727{col 26}{space 2} .0077763{col 37}{space 1}   -1.08{col 46}{space 3}0.283{col 54}{space 4}-.0237195{col 67}{space 3} .0069742
+{txt}{space 12} {c |}
+{space 8}ibov {c |}
+{space 9}D1. {c |}{col 14}{res}{space 2} .0040523{col 26}{space 2} .0032006{col 37}{space 1}    1.27{col 46}{space 3}0.207{col 54}{space 4}-.0022642{col 67}{space 3} .0103688
+{txt}{space 12} {c |}
+{space 9}ice {c |}
+{space 9}D1. {c |}{col 14}{res}{space 2}  .013775{col 26}{space 2} .0130664{col 37}{space 1}    1.05{col 46}{space 3}0.293{col 54}{space 4} -.012012{col 67}{space 3}  .039562
+{txt}{space 12} {c |}
+{space 9}ici {c |}
+{space 9}D1. {c |}{col 14}{res}{space 2}-.0087091{col 26}{space 2} .0154875{col 37}{space 1}   -0.56{col 46}{space 3}0.575{col 54}{space 4}-.0392741{col 67}{space 3}  .021856
+{txt}{space 12} {c |}
+{space 9}iie {c |}
+{space 9}D1. {c |}{col 14}{res}{space 2}-.0034962{col 26}{space 2} .0055325{col 37}{space 1}   -0.63{col 46}{space 3}0.528{col 54}{space 4}-.0144147{col 67}{space 3} .0074224
+{txt}{space 12} {c |}
+{space 10}ir {c |}
+{space 9}D1. {c |}{col 14}{res}{space 2}-.0004741{col 26}{space 2} .0002618{col 37}{space 1}   -1.81{col 46}{space 3}0.072{col 54}{space 4}-.0009908{col 67}{space 3} .0000425
+{txt}{space 12} {c |}
+{space 8}ltot {c |}
+{space 9}D1. {c |}{col 14}{res}{space 2} -.000647{col 26}{space 2} .0012073{col 37}{space 1}   -0.54{col 46}{space 3}0.593{col 54}{space 4}-.0030296{col 67}{space 3} .0017357
+{txt}{space 12} {c |}
+{space 8}nfsp {c |}
+{space 9}D1. {c |}{col 14}{res}{space 2} -.001698{col 26}{space 2} .0006671{col 37}{space 1}   -2.55{col 46}{space 3}0.012{col 54}{space 4}-.0030145{col 67}{space 3}-.0003815
+{txt}{space 12} {c |}
+{space 9}pib {c |}
+{space 9}D1. {c |}{col 14}{res}{space 2} 1.037153{col 26}{space 2} .1089904{col 37}{space 1}    9.52{col 46}{space 3}0.000{col 54}{space 4} .8220571{col 67}{space 3}  1.25225
+{txt}{space 9}LD. {c |}{col 14}{res}{space 2}-1.396632{col 26}{space 2} .1489669{col 37}{space 1}   -9.38{col 46}{space 3}0.000{col 54}{space 4}-1.690624{col 67}{space 3}-1.102641
+{txt}{space 8}L2D. {c |}{col 14}{res}{space 2} .5253087{col 26}{space 2}  .131733{col 37}{space 1}    3.99{col 46}{space 3}0.000{col 54}{space 4} .2653291{col 67}{space 3} .7852884
+{txt}{space 12} {c |}
+{space 8}poup {c |}
+{space 9}D1. {c |}{col 14}{res}{space 2} .1428284{col 26}{space 2}  .039269{col 37}{space 1}    3.64{col 46}{space 3}0.000{col 54}{space 4} .0653298{col 67}{space 3} .2203271
+{txt}{space 9}LD. {c |}{col 14}{res}{space 2}-.1277517{col 26}{space 2} .0523398{col 37}{space 1}   -2.44{col 46}{space 3}0.016{col 54}{space 4}-.2310461{col 67}{space 3}-.0244573
+{txt}{space 8}L2D. {c |}{col 14}{res}{space 2} .1128042{col 26}{space 2} .0384345{col 37}{space 1}    2.93{col 46}{space 3}0.004{col 54}{space 4} .0369524{col 67}{space 3} .1886561
+{txt}{space 12} {c |}
+{space 10}tt {c |}
+{space 9}D1. {c |}{col 14}{res}{space 2}-.0332092{col 26}{space 2} .0105177{col 37}{space 1}   -3.16{col 46}{space 3}0.002{col 54}{space 4}-.0539663{col 67}{space 3}-.0124521
+{txt}{space 12} {c |}
+{space 10}wp {c |}
+{space 9}D1. {c |}{col 14}{res}{space 2} .1214735{col 26}{space 2} .0638987{col 37}{space 1}    1.90{col 46}{space 3}0.059{col 54}{space 4}-.0046327{col 67}{space 3} .2475797
+{txt}{space 12} {c |}
+{space 7}_cons {c |}{col 14}{res}{space 2}-.8222898{col 26}{space 2} .4055452{col 37}{space 1}   -2.03{col 46}{space 3}0.044{col 54}{space 4}-1.622647{col 67}{space 3}-.0219325
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+
+{com}. 
+. 
+. predict yhat if e(sample), xb
+{txt}(3 missing values generated)
+
+{com}. tsline yhat d.fbcf
+{res}{txt}
+{com}. graph save fcast_ardl1, replace
+{txt}(note: file fcast_ardl1.gph not found)
+{res}{txt}(file fcast_ardl1.gph saved)
+
+{com}. graph export fcast_ardl1_ln.png, width(600) height(450) replace
+{txt}(note: file fcast_ardl1_ln.png not found)
+(file fcast_ardl1_ln.png written in PNG format)
+
+{com}. 
+. fcstats d.fbcf yhat
+
+{res}Forecast accuracy statistics for D.fbcf, N = 203
+
+{col 15}yhat
+RMSE  {col 15}.00339709
+MAE   {col 15}.00257007
+MAPE  {col 15}-.52736906
+Theil's U {col 15}.50741982
+{txt}
+{com}. 
+. esttab ecm_model3_ln ecm_model3_ln1 using "ecm_ardl1_ln.tex" , r2 ar2 p /// 
+> booktabs title("ECM desembolsos totais - coeficientes de curto-prazo"\label{c -(}tab1{c )-}) ///
+> mtitles("ECM(2a)" "ECM(2b)") replace 
+{res}{txt}(note: file ecm_ardl1_ln.tex not found)
+(output written to {browse  `"ecm_ardl1_ln.tex"'})
+
+{com}. 
+. * F-Bound test
+. estat ectest
+
+{txt}Pesaran, Shin, and Smith (2001) bounds test
+
+H0: no level relationship{col 62}F ={res}     5.176
+{txt}Case {res}4{col 62}{txt}t ={res}    -5.184
+
+{txt}Finite sample ({res}15{txt} variables, {res}203{txt} observations, {res}9{txt} short-run coefficients)
+
+Kripfganz and Schneider (2018) critical values and approximate p-values
+{res}
+{txt}{space 0}{space 3}{c |}{res}{txt}{space 1}{lalign 7:10%}{space 1}{space 9}{c |}{res}{txt}{space 1}{lalign 7:5%}{space 1}{space 9}{c |}{res}{txt}{space 1}{lalign 7:1%}{space 1}{space 9}{c |}{res}{txt}{space 1}{lalign 7:p-value}{space 1}
+{space 0}{space 0}{ralign 2:}{space 1}{c |}{space 1}{ralign 7:I(0)}{space 1}{space 1}{ralign 7:I(1)}{space 1}{c |}{space 1}{ralign 7:I(0)}{space 1}{space 1}{ralign 7:I(1)}{space 1}{c |}{space 1}{ralign 7:I(0)}{space 1}{space 1}{ralign 7:I(1)}{space 1}{c |}{space 1}{ralign 7:I(0)}{space 1}
+{space 0}{hline 3}{c   +}{hline 9}{hline 9}{c   +}{hline 9}{hline 9}{c   +}{hline 9}{hline 9}{c   +}{hline 9}
+{space 0}{space 0}{ralign 2:F}{space 1}{c |}{space 1}{ralign 7:{res:{sf:  1.791}}}{space 1}{space 1}{ralign 7:{res:{sf:  2.887}}}{space 1}{c |}{space 1}{ralign 7:{res:{sf:  1.992}}}{space 1}{space 1}{ralign 7:{res:{sf:  3.154}}}{space 1}{c |}{space 1}{ralign 7:{res:{sf:  2.416}}}{space 1}{space 1}{ralign 7:{res:{sf:  3.709}}}{space 1}{c |}{space 1}{ralign 7:{res:{sf:  0.000}}}{space 1}
+{space 0}{space 0}{ralign 2:t}{space 1}{c |}{space 1}{ralign 7:{res:{sf: -3.063}}}{space 1}{space 1}{ralign 7:{res:{sf: -5.258}}}{space 1}{c |}{space 1}{ralign 7:{res:{sf: -3.366}}}{space 1}{space 1}{ralign 7:{res:{sf: -5.625}}}{space 1}{c |}{space 1}{ralign 7:{res:{sf: -3.961}}}{space 1}{space 1}{ralign 7:{res:{sf: -6.320}}}{space 1}{c |}{space 1}{ralign 7:{res:{sf:  0.000}}}{space 1}
+
+{space 0}{space 3}{c |}{res}{txt}{space 1}{lalign 7:p-value}{space 0}
+{space 0}{space 0}{ralign 2:}{space 1}{c |}{space 1}{ralign 7:I(1)}{space 0}
+{space 0}{hline 3}{c   +}{hline 8}
+{space 0}{space 0}{ralign 2:F}{space 1}{c |}{space 1}{ralign 7:{res:{sf:  0.000}}}{space 0}
+{space 0}{space 0}{ralign 2:t}{space 1}{c |}{space 1}{ralign 7:{res:{sf:  0.113}}}{space 0}
+
+do not reject H0 if
+    both F and t are closer to zero than critical values for I(0) variables
+      (if p-values > desired level for I(0) variables)
+reject H0 if
+    both F and t are more extreme than critical values for I(1) variables
+      (if p-values < desired level for I(1) variables)
+
+{com}. 
+. 
+. /* assess the independence of the residuals by testing for normality 
+> using Skewness/Kurtosis tests by running*/
+. predict res1, residuals  
+{txt}(3 missing values generated)
+
+{com}. sktest res1
+{res}
+{txt}Skewness and kurtosis tests for normality
+{col 58}{hline 5} Joint test {hline 5}
+{col 5}Variable {c |}{col 22}Obs   Pr(skewness)   Pr(kurtosis)   Adj chi2(2)  Prob>chi2
+{hline 13}{c +}{hline 65}
+        res1 {c |}{res}{col 16}      203{col 34}0.0400{col 49}0.0025{col 60}    11.59{col 74}0.0030
+{txt}
+{com}. qnorm res1
+{res}{txt}
+{com}. graph save qnorm_ardl1_ln, replace
+{txt}(note: file qnorm_ardl1_ln.gph not found)
+{res}{txt}(file qnorm_ardl1_ln.gph saved)
+
+{com}. graph export qnorm_ardl1_ln.png, width(600) height(450) replace
+{txt}(note: file qnorm_ardl1_ln.png not found)
+(file qnorm_ardl1_ln.png written in PNG format)
+
+{com}. 
+. pnorm res1
+{res}{txt}
+{com}. graph save pnorm_ardl1_ln, replace
+{txt}(note: file pnorm_ardl1_ln.gph not found)
+{res}{txt}(file pnorm_ardl1_ln.gph saved)
+
+{com}. graph export pnorm_ardl1_ln.png, width(600) height(450) replace
+{txt}(note: file pnorm_ardl1_ln.png not found)
+(file pnorm_ardl1_ln.png written in PNG format)
+
+{com}. 
+. estimates restore ecm_model3_ln1
+{txt}(results {stata estimates replay ecm_model3_ln1:ecm_model3_ln1} are active now)
+
+{com}. 
+. * Shapiro-Wilk Test
+. swilk res1
+
+                   {txt}Shapiro-Wilk W test for normal data
+
+    Variable {c |}        Obs{col 33}W{col 45}V{col 55}z       Prob>z
+{hline 13}{c +}{hline 54}
+        res1 {c |} {res}       203    0.98386      2.439     2.053    0.02005
+{txt}
+{com}. 
+. /*examine the residuals of the estimated model for autocorrelation 
+> using BreuschGodfrey LM test by running*/
+. estat bgodfrey, lags(1/3) small
+
+{txt}Breusch-Godfrey LM test for autocorrelation
+{hline 13}{c TT}{hline 61}
+{col 5}lags({it:p}){col 14}{c |}{col 25}F{col 44}df{col 63}Prob > F
+{hline 13}{c +}{hline 61}
+{col 6}  1{col 14}{c |}{res}{col 18}     2.297{col 39}(  1,  175 ){col 63}  0.1314
+{txt}{col 6}  2{col 14}{c |}{res}{col 18}     2.365{col 39}(  2,  174 ){col 63}  0.0969
+{txt}{col 6}  3{col 14}{c |}{res}{col 18}    14.985{col 39}(  3,  173 ){col 63}  0.0000
+{txt}{hline 13}{c BT}{hline 61}
+{col 25}H0: no serial correlation
+
+{com}. 
+. estat durbinalt, lags(1/3) small
+
+{txt}Durbin's alternative test for autocorrelation
+{hline 13}{c TT}{hline 61}
+{col 5}lags({it:p}){col 14}{c |}{col 25}F{col 44}df{col 63}Prob > F
+{hline 13}{c +}{hline 61}
+{col 6}  1{col 14}{c |}{res}{col 18}     2.003{col 39}(  1,  175 ){col 63}  0.1588
+{txt}{col 6}  2{col 14}{c |}{res}{col 18}     2.076{col 39}(  2,  174 ){col 63}  0.1286
+{txt}{col 6}  3{col 14}{c |}{res}{col 18}    16.403{col 39}(  3,  173 ){col 63}  0.0000
+{txt}{hline 13}{c BT}{hline 61}
+{col 25}H0: no serial correlation
+
+{com}. 
+. /*we test for heteroskedasticity in the residuals using Cameron & 
+> Trivedi’s decomposition of IM-test by running*/
+. estat imtest, white
+
+{txt}White's test for Ho: homoskedasticity
+         against Ha: unrestricted heteroskedasticity
+
+{col 10}chi2({res}202{txt}){col 23}= {res}   203.00
+{col 10}{txt}Prob > chi2  = {res}   0.4670
+
+{txt}Cameron & Trivedi's decomposition of IM-test
+
+{hline 21}{c TT}{hline 29}
+{ralign 20:Source} {c |}       chi2     df      p
+{hline 21}{c +}{hline 29}
+{ralign 20:Heteroskedasticity} {c |}{res}     203.00    202    0.4670
+{txt}{ralign 20:Skewness} {c |}{res}      27.11     26    0.4038
+{txt}{ralign 20:Kurtosis} {c |}{res}       1.53      1    0.2157
+{txt}{hline 21}{c +}{hline 29}
+{ralign 20:Total} {c |}{res}     231.64    229    0.4388
+{txt}{hline 21}{c BT}{hline 29}
+
+{com}. 
+. estat hettest
+
+{txt}Breusch-Pagan / Cook-Weisberg test for heteroskedasticity 
+         Ho: Constant variance
+{p 9 20}Variables: fitted values of D.fbcf
+
+{col 10}chi2({res}1{txt}){col 23}={res}     0.13
+{txt}{col 10}Prob > chi2{col 23}={res}   0.7148
+{txt}
+{com}. 
+. estat ovtest
+
+{txt}Ramsey RESET test using powers of the fitted values of D.fbcf
+       Ho:  model has no omitted variables
+                 F(3, 173) = {res}     2.85
+                  {txt}Prob > F =      {res}0.0391
+{txt}
+{com}. 
+. estat sbcusum
+{res}
+{txt}Cumulative sum test for parameter stability
+
+{txt:Sample}:{res:  2003m2 - 2019m12} {col 52}Number of obs = {res}       203
+{txt}Ho: No structural break
+
+{col 32}1% Critical{col 50}5% Critical{col 67}10% Critical
+ Statistic{col 14}Test Statistic{col 36}Value{col 54}Value{col 72}Value
+{hline 78}
+{col 2}recursive{col 13}{res}    0.3761{col 31}    1.1430{col 49}    0.9479{col 67}     0.850
+{txt}{hline 78}
+
+{com}. graph save cusum_ardl1_ln,replace
+{txt}(note: file cusum_ardl1_ln.gph not found)
+{res}{txt}(file cusum_ardl1_ln.gph saved)
+
+{com}. graph export cusum_ardl1_ln.png, width(600) height(450) replace
+{txt}(note: file cusum_ardl1_ln.png not found)
+(file cusum_ardl1_ln.png written in PNG format)
+
+{com}. 
+. estat sbcusum, ols
+{res}
+{txt}Cumulative sum test for parameter stability
+
+{txt:Sample}:{res:  2003m2 - 2019m12} {col 52}Number of obs = {res}       203
+{txt}Ho: No structural break
+
+{col 32}1% Critical{col 50}5% Critical{col 67}10% Critical
+ Statistic{col 14}Test Statistic{col 36}Value{col 54}Value{col 72}Value
+{hline 78}
+{col 2}ols{col 13}{res}    0.3405{col 31}    1.6276{col 49}    1.3581{col 67}     1.224
+{txt}{hline 78}
+
+{com}. graph save cusumols_ardl1_ln,replace
+{txt}(note: file cusumols_ardl1_ln.gph not found)
+{res}{txt}(file cusumols_ardl1_ln.gph saved)
+
+{com}. graph export cusumols_ardl1_ln.png, width(600) height(450) replace
+{txt}(note: file cusumols_ardl1_ln.png not found)
+(file cusumols_ardl1_ln.png written in PNG format)
+
+{com}. 
+. *CUMSUM and CUMSUM2
+. cusum9 D.fbcf L(1/3)D.fbcf
+{res}{txt}
+{com}. graph save cusumsq_ardl1_ln,replace
+{txt}(note: file cusumsq_ardl1_ln.gph not found)
+{res}{txt}(file cusumsq_ardl1_ln.gph saved)
+
+{com}. graph export cusumsq_ardl1_ln.png, width(600) height(450) replace
+{txt}(note: file cusumsq_ardl1_ln.png not found)
+(file cusumsq_ardl1_ln.png written in PNG format)
+
+{com}. 
+. /*set matsize 800
+> 
+> dynardl fbcf cib curi embi er ibov ice ici iie ir ltot nfsp pib poup tt wp, ///
+> lags(1, ., ., ., ., ., ., ., ., ., ., ., 1, 1, ., 1) ///
+> diffs(., ., ., ., ., ., ., ., ., ., ., ., 1, 1, ., 1) ///
+> levels(., 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, ., ., 1, .)  ///
+> lagdiffs(1/2, ., ., ., ., ., ., ., ., ., ., ., 1/2, 1/2, ., .) ///
+> shockvar(ltot) time(2) range(36) ///
+> graph change sims(800) ec trend shockval(-1)*/
+. 
+. 
+. * estat archim
+. 
+. * estat vif
+. 
+. * close log file
+. log close
+      {txt}name:  {res}<unnamed>
+       {txt}log:  {res}D:\Google Drive\_DOUTORADO\__TESE\_TESE_3rd\artigo1\stata\ardlmodel3ln\log-ardl3_ln.10 Jun 202111_03_08.smcl
+  {txt}log type:  {res}smcl
+ {txt}closed on:  {res}10 Jun 2021, 11:03:22
+{txt}{.-}
+{smcl}
+{txt}{sf}{ul off}

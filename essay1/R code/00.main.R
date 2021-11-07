@@ -1,0 +1,171 @@
+#' ############################################################################
+#' Este código serve para replicar os resultados do artigo: 
+#' "O BNDES E O NÍVEL DE INVESTIMENTO AGREGADO DA ECONOMIA BRASILEIRA 
+#' - UMA ANÁLISE MACROECONOMÉTRICA", parte integrante da
+#' Tese apresentada ao Programa de Doutorado em Economia da Universidade de 
+#' Brasília como requisito para obtenção do grau de Doutor em Ciências 
+#' Econômicas - Área de Concentração: Análise Econômica
+#'
+#'
+#' Autor: Carlos Eduardo Veras Neves
+#' Data: 17/05/2021
+#' 
+#' Este é script responsável por chamar as funções que propriamente
+#' são responsáveis pela produção das análises, as quais estão nos
+#' arquivos:
+#' - 01.getData.R 
+#' - 02.dataExplor.R
+#' - 02.urootAnalysis.R
+#' - 03.ARDLSimul.R
+#' - 04.BVARSimul.R
+#' 
+
+# limpa o ambiente de variáveis
+rm(list = ls())
+
+#' ############################################################################
+#' @description Carrega as bibliotecas necessárias para obtenção de dados, análises e 
+#' simulações
+#'
+#'
+
+# biblioteca para gerar o arquivo de log
+library(log4r)
+
+# configura as opções de log
+my_logfile = "logfile.txt"
+
+my_console_appender = console_appender(layout = default_log_layout())
+my_file_appender = file_appender(my_logfile, append = TRUE, 
+                                 layout = default_log_layout())
+
+my_logger <- log4r::logger(threshold = "INFO", 
+                           appenders= list(my_console_appender,my_file_appender))
+
+
+# Funções auxiliares de log
+log4r_info <- function(info_message) {
+  log4r::info(my_logger, info_message)
+}
+
+log4r_error <- function(error_message) {
+  log4r::error(my_logger, error_message)
+}
+
+log4r_debug <- function(debug_message) {
+  log4r::debug(my_logger, debug_message)
+}
+
+#######################################################################################
+#' @description Verifica se os dados para análise já existem.
+#' 
+get_data <- function(){
+  
+  # checa se os dados não existem 
+  if(file.exists("dados.RData")==TRUE){
+    
+    return(as.logical(FALSE))
+    #return(as.logical(TRUE))
+  }else{
+    
+    return(as.logical(TRUE))
+  }
+  
+}
+
+
+log4r_info(" *** Iniciando o script ...")
+log4r_info(" *** Carregando bibliotecas ...") 
+
+source("00.libs.R")
+
+log4r_info(" *** Bibliotecas carregadas com sucesso! *** ") 
+
+
+#' ############################################################################
+#' @description Executa os comandos responsáveis por realizar o carregamento dos dados
+#' 
+#'
+log4r_info(" *** Carregando a base de dados...") 
+
+if ( get_data() ) {
+  source("01.getData.R")  
+}
+
+#######################################################################################
+#' @description Carrega a base de dados gravada em disco
+#'
+#' 
+log4r_info(" Lendo base de dados ...") 
+load("dados.RData")
+
+log4r_info(" *** Base de dados carregada com sucesso! *** ")
+
+#' ############################################################################
+#' @description Executa os comandos responsáveis pela análise exploratória dos dados
+#' 
+#'
+
+log4r_info(" *** Realizando análise exploratória de dados ...") 
+#######################################################################################
+#' @description Seleciona a base de dados para a realização da análise
+#'
+#' @param TYPE constante para definir a forma da base de dados: 
+#' 'A' - dados mensais em log
+#' 'B' - dados mensais como percentual do PIB e com desembolsos acumulados em 12 meses
+#' @return `database` base de dados utilizado para análise
+analysis_type <- function(TYPE){
+  
+  if (TYPE == 'A') { #'A' - dados mensais em log
+
+    database <- na.remove(data.ln.m)
+
+    
+    } else{ #'B' - dados mensais como percentual do PIB e com desembolsos acumulados em 12 meses
+    
+    database <- na.remove(data.acum.pib)
+    
+  }
+
+  return(database)  
+}
+
+#########################################################################
+## Seleciona a base de dados para proceder com as análises e simulações 
+TYPE = 'A'
+database <- analysis_type(TYPE)
+
+# limpa o workspace
+rm(list = ls()[!(ls() %in% c('database','data.acum.pib','data.ln.m',
+                             'log4r_debug','log4r_error',
+                             'log4r_debug', 'log4r_info','TYPE',
+                             'analysis_type', 'my_logger','my_logfile',
+                             'my_file_appender','my_console_appender' ))])
+
+#########################################################################
+
+source("02.dataExplor.R")
+
+log4r_info(" *** Análise exploratória de dados concluída *** ") 
+
+log4r_info(" *** Realizando a análise de raízes unitárias e cointegração (apêndice) *** ") 
+
+source("02.urootAnalysis.R")
+
+log4r_info(" *** Análise de raízes unitárias e cointegração (apêndice) concluída *** ") 
+
+
+#' ############################################################################
+#' @description Executa os comandos responsáveis pela simulação com o modelo ARDL
+#' 
+#'
+
+
+#source("03.ARDLSimul.R")
+
+#' ############################################################################
+#' @description Executa os comandos responsáveis pela simulação com o modelo BVAR
+#' 
+#'
+
+#source("04.BVARSimul.R")

@@ -1,0 +1,640 @@
+{smcl}
+{txt}{sf}{ul off}{.-}
+      name:  {res}<unnamed>
+       {txt}log:  {res}D:\Google Drive\_DOUTORADO\__TESE\_TESE_3rd\Tese3rda\artigo1\stata\ardlmodel4ln\log-ardl4_ln.18 Jul 202121_03_45.smcl
+  {txt}log type:  {res}smcl
+ {txt}opened on:  {res}18 Jul 2021, 21:03:45
+{txt}
+{com}. 
+. 
+. gen t = tm(2002m11) + _n - 1
+{txt}
+{com}. tsset t, monthly
+{res}{txt}{col 9}time variable:  {res}{col 25}t, 2002m11 to 2019m12
+{txt}{col 17}delta:  {res}1 month
+{txt}
+{com}. 
+. /**********************************************
+> Modelo ARDL com séries como percentual do wp e 
+> desembolsos setoriais como percentual do wp e acumulados.
+> 
+> ***********************************************/
+. 
+. // ARDL regression
+. ardl fbcf cib curi embi er ibov ice ici iie ir lagr lcom lind linf /// 
+> nfsp pib poup tt wp, ///
+> lags(3 0 0 0 0 0 0 0 0 1 0 0 0 0 0 3 3 2 1) trendvar(t) regstore(ardl_model4_ln)
+{res}
+{txt}ARDL(3,0,0,0,0,0,0,0,0,1,0,0,0,0,0,3,3,2,1) regression
+
+{col 1}Sample:  2003m2 - 2019m12{col 49}Number of obs{col 67}= {res}       203
+{txt}{col 49}F({res}  32{txt},{res}    170{txt}){col 67}= {res}  29933.06
+{txt}{col 49}Prob > F{col 67}= {res}    0.0000
+{txt}{col 49}R-squared{col 67}= {res}    0.9998
+{txt}{col 49}Adj R-squared{col 67}= {res}    0.9998
+{txt}Log likelihood = {res} 871.72407{txt}{col 49}Root MSE{col 67}= {res}    0.0036
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        fbcf{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 8}fbcf {c |}
+{space 9}L1. {c |}{col 14}{res}{space 2} 2.148176{col 26}{space 2} .0560019{col 37}{space 1}   38.36{col 46}{space 3}0.000{col 54}{space 4} 2.037628{col 67}{space 3} 2.258725
+{txt}{space 9}L2. {c |}{col 14}{res}{space 2}-1.806864{col 26}{space 2} .0978479{col 37}{space 1}  -18.47{col 46}{space 3}0.000{col 54}{space 4}-2.000017{col 67}{space 3}-1.613711
+{txt}{space 9}L3. {c |}{col 14}{res}{space 2} .5814328{col 26}{space 2} .0556574{col 37}{space 1}   10.45{col 46}{space 3}0.000{col 54}{space 4} .4715642{col 67}{space 3} .6913014
+{txt}{space 12} {c |}
+{space 9}cib {c |}{col 14}{res}{space 2} .0025789{col 26}{space 2} .0064544{col 37}{space 1}    0.40{col 46}{space 3}0.690{col 54}{space 4}-.0101623{col 67}{space 3} .0153201
+{txt}{space 8}curi {c |}{col 14}{res}{space 2} .0447182{col 26}{space 2} .0408327{col 37}{space 1}    1.10{col 46}{space 3}0.275{col 54}{space 4}-.0358864{col 67}{space 3} .1253227
+{txt}{space 8}embi {c |}{col 14}{res}{space 2} .0036575{col 26}{space 2} .0022232{col 37}{space 1}    1.65{col 46}{space 3}0.102{col 54}{space 4} -.000731{col 67}{space 3} .0080461
+{txt}{space 10}er {c |}{col 14}{res}{space 2}-.0063839{col 26}{space 2} .0079437{col 37}{space 1}   -0.80{col 46}{space 3}0.423{col 54}{space 4}-.0220648{col 67}{space 3} .0092971
+{txt}{space 8}ibov {c |}{col 14}{res}{space 2} .0047032{col 26}{space 2} .0034493{col 37}{space 1}    1.36{col 46}{space 3}0.175{col 54}{space 4}-.0021057{col 67}{space 3} .0115122
+{txt}{space 9}ice {c |}{col 14}{res}{space 2}  .012675{col 26}{space 2}  .013283{col 37}{space 1}    0.95{col 46}{space 3}0.341{col 54}{space 4}-.0135458{col 67}{space 3} .0388959
+{txt}{space 9}ici {c |}{col 14}{res}{space 2}-.0046585{col 26}{space 2} .0155314{col 37}{space 1}   -0.30{col 46}{space 3}0.765{col 54}{space 4}-.0353177{col 67}{space 3} .0260007
+{txt}{space 9}iie {c |}{col 14}{res}{space 2}-.0036052{col 26}{space 2} .0058408{col 37}{space 1}   -0.62{col 46}{space 3}0.538{col 54}{space 4}-.0151351{col 67}{space 3} .0079247
+{txt}{space 12} {c |}
+{space 10}ir {c |}
+{space 9}--. {c |}{col 14}{res}{space 2} -.001717{col 26}{space 2} .0006483{col 37}{space 1}   -2.65{col 46}{space 3}0.009{col 54}{space 4}-.0029968{col 67}{space 3}-.0004372
+{txt}{space 9}L1. {c |}{col 14}{res}{space 2} .0014862{col 26}{space 2} .0006528{col 37}{space 1}    2.28{col 46}{space 3}0.024{col 54}{space 4} .0001975{col 67}{space 3} .0027749
+{txt}{space 12} {c |}
+{space 8}lagr {c |}{col 14}{res}{space 2} .0002007{col 26}{space 2} .0007317{col 37}{space 1}    0.27{col 46}{space 3}0.784{col 54}{space 4}-.0012437{col 67}{space 3} .0016451
+{txt}{space 8}lcom {c |}{col 14}{res}{space 2} .0002946{col 26}{space 2} .0011086{col 37}{space 1}    0.27{col 46}{space 3}0.791{col 54}{space 4}-.0018939{col 67}{space 3}  .002483
+{txt}{space 8}lind {c |}{col 14}{res}{space 2} .0012615{col 26}{space 2} .0012908{col 37}{space 1}    0.98{col 46}{space 3}0.330{col 54}{space 4}-.0012867{col 67}{space 3} .0038096
+{txt}{space 8}linf {c |}{col 14}{res}{space 2}-.0005502{col 26}{space 2} .0009844{col 37}{space 1}   -0.56{col 46}{space 3}0.577{col 54}{space 4}-.0024935{col 67}{space 3} .0013931
+{txt}{space 8}nfsp {c |}{col 14}{res}{space 2}-.0021748{col 26}{space 2} .0007412{col 37}{space 1}   -2.93{col 46}{space 3}0.004{col 54}{space 4} -.003638{col 67}{space 3}-.0007116
+{txt}{space 12} {c |}
+{space 9}pib {c |}
+{space 9}--. {c |}{col 14}{res}{space 2} 1.020499{col 26}{space 2} .1104555{col 37}{space 1}    9.24{col 46}{space 3}0.000{col 54}{space 4}  .802458{col 67}{space 3}  1.23854
+{txt}{space 9}L1. {c |}{col 14}{res}{space 2}-2.233963{col 26}{space 2} .2380691{col 37}{space 1}   -9.38{col 46}{space 3}0.000{col 54}{space 4}-2.703915{col 67}{space 3} -1.76401
+{txt}{space 9}L2. {c |}{col 14}{res}{space 2} 1.785573{col 26}{space 2} .2636505{col 37}{space 1}    6.77{col 46}{space 3}0.000{col 54}{space 4} 1.265123{col 67}{space 3} 2.306024
+{txt}{space 9}L3. {c |}{col 14}{res}{space 2}-.4421877{col 26}{space 2} .1370597{col 37}{space 1}   -3.23{col 46}{space 3}0.002{col 54}{space 4}-.7127458{col 67}{space 3}-.1716296
+{txt}{space 12} {c |}
+{space 8}poup {c |}
+{space 9}--. {c |}{col 14}{res}{space 2} .1423794{col 26}{space 2} .0393802{col 37}{space 1}    3.62{col 46}{space 3}0.000{col 54}{space 4} .0646423{col 67}{space 3} .2201165
+{txt}{space 9}L1. {c |}{col 14}{res}{space 2}-.2582684{col 26}{space 2} .0884141{col 37}{space 1}   -2.92{col 46}{space 3}0.004{col 54}{space 4}-.4327993{col 67}{space 3}-.0837375
+{txt}{space 9}L2. {c |}{col 14}{res}{space 2} .2474615{col 26}{space 2}   .08905{col 37}{space 1}    2.78{col 46}{space 3}0.006{col 54}{space 4} .0716754{col 67}{space 3} .4232476
+{txt}{space 9}L3. {c |}{col 14}{res}{space 2}-.1144492{col 26}{space 2} .0392714{col 37}{space 1}   -2.91{col 46}{space 3}0.004{col 54}{space 4}-.1919717{col 67}{space 3}-.0369267
+{txt}{space 12} {c |}
+{space 10}tt {c |}
+{space 9}--. {c |}{col 14}{res}{space 2}-.0236081{col 26}{space 2} .0145944{col 37}{space 1}   -1.62{col 46}{space 3}0.108{col 54}{space 4}-.0524178{col 67}{space 3} .0052015
+{txt}{space 9}L1. {c |}{col 14}{res}{space 2} .0171752{col 26}{space 2} .0160468{col 37}{space 1}    1.07{col 46}{space 3}0.286{col 54}{space 4}-.0145014{col 67}{space 3} .0488518
+{txt}{space 9}L2. {c |}{col 14}{res}{space 2}-.0303421{col 26}{space 2} .0142016{col 37}{space 1}   -2.14{col 46}{space 3}0.034{col 54}{space 4}-.0583762{col 67}{space 3}-.0023079
+{txt}{space 12} {c |}
+{space 10}wp {c |}
+{space 9}--. {c |}{col 14}{res}{space 2} .1002104{col 26}{space 2}  .066041{col 37}{space 1}    1.52{col 46}{space 3}0.131{col 54}{space 4}-.0301556{col 67}{space 3} .2305764
+{txt}{space 9}L1. {c |}{col 14}{res}{space 2}-.1719426{col 26}{space 2} .0652098{col 37}{space 1}   -2.64{col 46}{space 3}0.009{col 54}{space 4}-.3006678{col 67}{space 3}-.0432174
+{txt}{space 12} {c |}
+{space 11}t {c |}{col 14}{res}{space 2} 5.33e-06{col 26}{space 2} .0001234{col 37}{space 1}    0.04{col 46}{space 3}0.966{col 54}{space 4}-.0002383{col 67}{space 3} .0002489
+{txt}{space 7}_cons {c |}{col 14}{res}{space 2}-.8785463{col 26}{space 2} .4366586{col 37}{space 1}   -2.01{col 46}{space 3}0.046{col 54}{space 4}-1.740518{col 67}{space 3} -.016575
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+
+{com}. 
+. //eststo ardl_model4_wpacum
+. /*esttab ardl_model4_ln using "ardl_model4ln.tex" , r2 ar2 p /// 
+> booktabs title("ARDL desembolsos setoriais - ARDL(3 0 0 0 0 0 0 0 0 1 0 0 0 0 0 3 3 2 1)"\label{c -(}tab1{c )-}) ///
+> replace */
+. 
+. outreg2 using ardl2_ln, tex(frag) nocons replace
+{txt}{stata `"shellout using `"ardl2_ln.tex"'"':ardl2_ln.tex}
+{browse `"D:\Google Drive\_DOUTORADO\__TESE\_TESE_3rd\Tese3rda\artigo1\stata\ardlmodel4ln"' :dir}{com} : {txt}{stata `"seeout using "ardl2_ln.txt""':seeout}
+
+{com}. 
+. // ARDL LR e SR coefficients
+. 
+. * data until 2016/01
+. /*ardl fbcf cib curi embi er ibov ice ici iie ir lagr lcom lind linf /// 
+> nfsp wp poup tt wp if tin(2002m11, 2016m1), ///
+> lags(4 4 2 0 0 0 0 1 3 0 3 0 0 0 2 3 2 0 0) ec trendvar(t) restricted regstore(ecm_model4_ln1)*/
+. 
+. * F-Bound test
+. //estat ectest
+. 
+. * data until 2019/12
+. ardl fbcf cib curi embi er ibov ice ici iie ir lagr lcom lind linf /// 
+> nfsp pib poup tt wp, ///
+> lags(3 0 0 0 0 0 0 0 0 1 0 0 0 0 0 3 3 2 1) ec ///
+> trendvar(t) restricted regstore(ecm_model4_ln)
+{res}
+{txt}ARDL(3,0,0,0,0,0,0,0,0,1,0,0,0,0,0,3,3,2,1) regression
+
+{col 1}Sample:  2003m2 - 2019m12{col 49}Number of obs{col 67}= {res}       203
+{txt}{col 49}R-squared{col 67}= {res}    0.9554
+{txt}{col 49}Adj R-squared{col 67}= {res}    0.9470
+{txt}Log likelihood = {res} 871.72407{txt}{col 49}Root MSE{col 67}= {res}    0.0036
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}      D.fbcf{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}ADJ          {txt}{c |}
+{space 8}fbcf {c |}
+{space 9}L1. {c |}{col 14}{res}{space 2}-.0772547{col 26}{space 2} .0155972{col 37}{space 1}   -4.95{col 46}{space 3}0.000{col 54}{space 4}-.1080438{col 67}{space 3}-.0464656
+{txt}{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}LR           {txt}{c |}
+{space 9}cib {c |}{col 14}{res}{space 2} .0333818{col 26}{space 2} .0829416{col 37}{space 1}    0.40{col 46}{space 3}0.688{col 54}{space 4}-.1303464{col 67}{space 3}   .19711
+{txt}{space 8}curi {c |}{col 14}{res}{space 2}  .578841{col 26}{space 2} .4987159{col 37}{space 1}    1.16{col 46}{space 3}0.247{col 54}{space 4}-.4056326{col 67}{space 3} 1.563315
+{txt}{space 8}embi {c |}{col 14}{res}{space 2} .0473441{col 26}{space 2} .0300017{col 37}{space 1}    1.58{col 46}{space 3}0.116{col 54}{space 4}-.0118798{col 67}{space 3} .1065679
+{txt}{space 10}er {c |}{col 14}{res}{space 2}-.0826339{col 26}{space 2} .1044437{col 37}{space 1}   -0.79{col 46}{space 3}0.430{col 54}{space 4}-.2888076{col 67}{space 3} .1235397
+{txt}{space 8}ibov {c |}{col 14}{res}{space 2} .0608797{col 26}{space 2} .0464947{col 37}{space 1}    1.31{col 46}{space 3}0.192{col 54}{space 4}-.0309017{col 67}{space 3}  .152661
+{txt}{space 9}ice {c |}{col 14}{res}{space 2} .1640683{col 26}{space 2} .1698877{col 37}{space 1}    0.97{col 46}{space 3}0.336{col 54}{space 4}-.1712929{col 67}{space 3} .4994295
+{txt}{space 9}ici {c |}{col 14}{res}{space 2}-.0603001{col 26}{space 2} .1991044{col 37}{space 1}   -0.30{col 46}{space 3}0.762{col 54}{space 4}-.4533355{col 67}{space 3} .3327353
+{txt}{space 9}iie {c |}{col 14}{res}{space 2}-.0466664{col 26}{space 2} .0770169{col 37}{space 1}   -0.61{col 46}{space 3}0.545{col 54}{space 4}-.1986991{col 67}{space 3} .1053662
+{txt}{space 10}ir {c |}{col 14}{res}{space 2}-.0029874{col 26}{space 2} .0037021{col 37}{space 1}   -0.81{col 46}{space 3}0.421{col 54}{space 4}-.0102955{col 67}{space 3} .0043207
+{txt}{space 8}lagr {c |}{col 14}{res}{space 2} .0025976{col 26}{space 2} .0094948{col 37}{space 1}    0.27{col 46}{space 3}0.785{col 54}{space 4}-.0161452{col 67}{space 3} .0213404
+{txt}{space 8}lcom {c |}{col 14}{res}{space 2} .0038129{col 26}{space 2} .0144704{col 37}{space 1}    0.26{col 46}{space 3}0.792{col 54}{space 4} -.024752{col 67}{space 3} .0323777
+{txt}{space 8}lind {c |}{col 14}{res}{space 2} .0163286{col 26}{space 2} .0171589{col 37}{space 1}    0.95{col 46}{space 3}0.343{col 54}{space 4}-.0175434{col 67}{space 3} .0502006
+{txt}{space 8}linf {c |}{col 14}{res}{space 2}-.0071221{col 26}{space 2} .0128614{col 37}{space 1}   -0.55{col 46}{space 3}0.580{col 54}{space 4}-.0325107{col 67}{space 3} .0182665
+{txt}{space 8}nfsp {c |}{col 14}{res}{space 2}-.0281509{col 26}{space 2} .0098902{col 37}{space 1}   -2.85{col 46}{space 3}0.005{col 54}{space 4}-.0476744{col 67}{space 3}-.0086275
+{txt}{space 9}pib {c |}{col 14}{res}{space 2} 1.681733{col 26}{space 2}  .437247{col 37}{space 1}    3.85{col 46}{space 3}0.000{col 54}{space 4} .8186005{col 67}{space 3} 2.544866
+{txt}{space 8}poup {c |}{col 14}{res}{space 2} .2216475{col 26}{space 2} .1622521{col 37}{space 1}    1.37{col 46}{space 3}0.174{col 54}{space 4}-.0986409{col 67}{space 3} .5419358
+{txt}{space 10}tt {c |}{col 14}{res}{space 2}-.4760232{col 26}{space 2} .1684539{col 37}{space 1}   -2.83{col 46}{space 3}0.005{col 54}{space 4} -.808554{col 67}{space 3}-.1434925
+{txt}{space 10}wp {c |}{col 14}{res}{space 2}-.9285162{col 26}{space 2} .2923454{col 37}{space 1}   -3.18{col 46}{space 3}0.002{col 54}{space 4}-1.505611{col 67}{space 3}-.3514216
+{txt}{space 11}t {c |}{col 14}{res}{space 2}  .000069{col 26}{space 2}  .001603{col 37}{space 1}    0.04{col 46}{space 3}0.966{col 54}{space 4}-.0030953{col 67}{space 3} .0032333
+{txt}{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}SR           {txt}{c |}
+{space 8}fbcf {c |}
+{space 9}LD. {c |}{col 14}{res}{space 2} 1.225431{col 26}{space 2} .0475707{col 37}{space 1}   25.76{col 46}{space 3}0.000{col 54}{space 4} 1.131526{col 67}{space 3} 1.319337
+{txt}{space 8}L2D. {c |}{col 14}{res}{space 2}-.5814328{col 26}{space 2} .0556574{col 37}{space 1}  -10.45{col 46}{space 3}0.000{col 54}{space 4}-.6913014{col 67}{space 3}-.4715642
+{txt}{space 12} {c |}
+{space 10}ir {c |}
+{space 9}D1. {c |}{col 14}{res}{space 2}-.0014862{col 26}{space 2} .0006528{col 37}{space 1}   -2.28{col 46}{space 3}0.024{col 54}{space 4}-.0027749{col 67}{space 3}-.0001975
+{txt}{space 12} {c |}
+{space 9}pib {c |}
+{space 9}D1. {c |}{col 14}{res}{space 2} .8905773{col 26}{space 2} .1015572{col 37}{space 1}    8.77{col 46}{space 3}0.000{col 54}{space 4} .6901017{col 67}{space 3} 1.091053
+{txt}{space 9}LD. {c |}{col 14}{res}{space 2}-1.343386{col 26}{space 2} .1505065{col 37}{space 1}   -8.93{col 46}{space 3}0.000{col 54}{space 4}-1.640488{col 67}{space 3}-1.046283
+{txt}{space 8}L2D. {c |}{col 14}{res}{space 2} .4421877{col 26}{space 2} .1370597{col 37}{space 1}    3.23{col 46}{space 3}0.002{col 54}{space 4} .1716296{col 67}{space 3} .7127458
+{txt}{space 12} {c |}
+{space 8}poup {c |}
+{space 9}D1. {c |}{col 14}{res}{space 2} .1252561{col 26}{space 2} .0377238{col 37}{space 1}    3.32{col 46}{space 3}0.001{col 54}{space 4} .0507887{col 67}{space 3} .1997234
+{txt}{space 9}LD. {c |}{col 14}{res}{space 2}-.1330123{col 26}{space 2} .0527258{col 37}{space 1}   -2.52{col 46}{space 3}0.013{col 54}{space 4}-.2370939{col 67}{space 3}-.0289308
+{txt}{space 8}L2D. {c |}{col 14}{res}{space 2} .1144492{col 26}{space 2} .0392714{col 37}{space 1}    2.91{col 46}{space 3}0.004{col 54}{space 4} .0369267{col 67}{space 3} .1919717
+{txt}{space 12} {c |}
+{space 10}tt {c |}
+{space 9}D1. {c |}{col 14}{res}{space 2} .0131669{col 26}{space 2} .0152256{col 37}{space 1}    0.86{col 46}{space 3}0.388{col 54}{space 4}-.0168887{col 67}{space 3} .0432225
+{txt}{space 9}LD. {c |}{col 14}{res}{space 2} .0303421{col 26}{space 2} .0142016{col 37}{space 1}    2.14{col 46}{space 3}0.034{col 54}{space 4} .0023079{col 67}{space 3} .0583762
+{txt}{space 12} {c |}
+{space 10}wp {c |}
+{space 9}D1. {c |}{col 14}{res}{space 2} .1719426{col 26}{space 2} .0652098{col 37}{space 1}    2.64{col 46}{space 3}0.009{col 54}{space 4} .0432174{col 67}{space 3} .3006678
+{txt}{space 12} {c |}
+{space 7}_cons {c |}{col 14}{res}{space 2}-.8785463{col 26}{space 2} .4366586{col 37}{space 1}   -2.01{col 46}{space 3}0.046{col 54}{space 4}-1.740518{col 67}{space 3} -.016575
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+
+{com}. 
+. // gera a tabela com os coeficientes de curto-prazo na representação em t
+. outreg2 using ecm_ardl2_ln, tex(frag) nocons replace
+{txt}{stata `"shellout using `"ecm_ardl2_ln.tex"'"':ecm_ardl2_ln.tex}
+{browse `"D:\Google Drive\_DOUTORADO\__TESE\_TESE_3rd\Tese3rda\artigo1\stata\ardlmodel4ln"' :dir}{com} : {txt}{stata `"seeout using "ecm_ardl2_ln.txt""':seeout}
+
+{com}. 
+. ardl fbcf cib curi embi er ibov ice ici iie ir lagr lcom lind linf /// 
+> nfsp pib poup tt wp, ///
+> lags(3 0 0 0 0 0 0 0 0 1 0 0 0 0 0 3 3 2 1) ec1 ///
+> trendvar(t) restricted regstore(ecm_model4_ln1)
+{res}
+{txt}ARDL(3,0,0,0,0,0,0,0,0,1,0,0,0,0,0,3,3,2,1) regression
+
+{col 1}Sample:  2003m2 - 2019m12{col 49}Number of obs{col 67}= {res}       203
+{txt}{col 49}R-squared{col 67}= {res}    0.9554
+{txt}{col 49}Adj R-squared{col 67}= {res}    0.9470
+{txt}Log likelihood = {res} 871.72407{txt}{col 49}Root MSE{col 67}= {res}    0.0036
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}      D.fbcf{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}ADJ          {txt}{c |}
+{space 8}fbcf {c |}
+{space 9}L1. {c |}{col 14}{res}{space 2}-.0772547{col 26}{space 2} .0155972{col 37}{space 1}   -4.95{col 46}{space 3}0.000{col 54}{space 4}-.1080438{col 67}{space 3}-.0464656
+{txt}{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}LR           {txt}{c |}
+{space 9}cib {c |}
+{space 9}L1. {c |}{col 14}{res}{space 2} .0333818{col 26}{space 2} .0829416{col 37}{space 1}    0.40{col 46}{space 3}0.688{col 54}{space 4}-.1303464{col 67}{space 3}   .19711
+{txt}{space 12} {c |}
+{space 8}curi {c |}
+{space 9}L1. {c |}{col 14}{res}{space 2}  .578841{col 26}{space 2} .4987159{col 37}{space 1}    1.16{col 46}{space 3}0.247{col 54}{space 4}-.4056326{col 67}{space 3} 1.563315
+{txt}{space 12} {c |}
+{space 8}embi {c |}
+{space 9}L1. {c |}{col 14}{res}{space 2} .0473441{col 26}{space 2} .0300017{col 37}{space 1}    1.58{col 46}{space 3}0.116{col 54}{space 4}-.0118798{col 67}{space 3} .1065679
+{txt}{space 12} {c |}
+{space 10}er {c |}
+{space 9}L1. {c |}{col 14}{res}{space 2}-.0826339{col 26}{space 2} .1044437{col 37}{space 1}   -0.79{col 46}{space 3}0.430{col 54}{space 4}-.2888076{col 67}{space 3} .1235397
+{txt}{space 12} {c |}
+{space 8}ibov {c |}
+{space 9}L1. {c |}{col 14}{res}{space 2} .0608797{col 26}{space 2} .0464947{col 37}{space 1}    1.31{col 46}{space 3}0.192{col 54}{space 4}-.0309017{col 67}{space 3}  .152661
+{txt}{space 12} {c |}
+{space 9}ice {c |}
+{space 9}L1. {c |}{col 14}{res}{space 2} .1640683{col 26}{space 2} .1698877{col 37}{space 1}    0.97{col 46}{space 3}0.336{col 54}{space 4}-.1712929{col 67}{space 3} .4994295
+{txt}{space 12} {c |}
+{space 9}ici {c |}
+{space 9}L1. {c |}{col 14}{res}{space 2}-.0603001{col 26}{space 2} .1991044{col 37}{space 1}   -0.30{col 46}{space 3}0.762{col 54}{space 4}-.4533355{col 67}{space 3} .3327353
+{txt}{space 12} {c |}
+{space 9}iie {c |}
+{space 9}L1. {c |}{col 14}{res}{space 2}-.0466664{col 26}{space 2} .0770169{col 37}{space 1}   -0.61{col 46}{space 3}0.545{col 54}{space 4}-.1986991{col 67}{space 3} .1053662
+{txt}{space 12} {c |}
+{space 10}ir {c |}
+{space 9}L1. {c |}{col 14}{res}{space 2}-.0029874{col 26}{space 2} .0037021{col 37}{space 1}   -0.81{col 46}{space 3}0.421{col 54}{space 4}-.0102955{col 67}{space 3} .0043207
+{txt}{space 12} {c |}
+{space 8}lagr {c |}
+{space 9}L1. {c |}{col 14}{res}{space 2} .0025976{col 26}{space 2} .0094948{col 37}{space 1}    0.27{col 46}{space 3}0.785{col 54}{space 4}-.0161452{col 67}{space 3} .0213404
+{txt}{space 12} {c |}
+{space 8}lcom {c |}
+{space 9}L1. {c |}{col 14}{res}{space 2} .0038129{col 26}{space 2} .0144704{col 37}{space 1}    0.26{col 46}{space 3}0.792{col 54}{space 4} -.024752{col 67}{space 3} .0323777
+{txt}{space 12} {c |}
+{space 8}lind {c |}
+{space 9}L1. {c |}{col 14}{res}{space 2} .0163286{col 26}{space 2} .0171589{col 37}{space 1}    0.95{col 46}{space 3}0.343{col 54}{space 4}-.0175434{col 67}{space 3} .0502006
+{txt}{space 12} {c |}
+{space 8}linf {c |}
+{space 9}L1. {c |}{col 14}{res}{space 2}-.0071221{col 26}{space 2} .0128614{col 37}{space 1}   -0.55{col 46}{space 3}0.580{col 54}{space 4}-.0325107{col 67}{space 3} .0182665
+{txt}{space 12} {c |}
+{space 8}nfsp {c |}
+{space 9}L1. {c |}{col 14}{res}{space 2}-.0281509{col 26}{space 2} .0098902{col 37}{space 1}   -2.85{col 46}{space 3}0.005{col 54}{space 4}-.0476744{col 67}{space 3}-.0086275
+{txt}{space 12} {c |}
+{space 9}pib {c |}
+{space 9}L1. {c |}{col 14}{res}{space 2} 1.681733{col 26}{space 2}  .437247{col 37}{space 1}    3.85{col 46}{space 3}0.000{col 54}{space 4} .8186005{col 67}{space 3} 2.544866
+{txt}{space 12} {c |}
+{space 8}poup {c |}
+{space 9}L1. {c |}{col 14}{res}{space 2} .2216475{col 26}{space 2} .1622521{col 37}{space 1}    1.37{col 46}{space 3}0.174{col 54}{space 4}-.0986409{col 67}{space 3} .5419358
+{txt}{space 12} {c |}
+{space 10}tt {c |}
+{space 9}L1. {c |}{col 14}{res}{space 2}-.4760232{col 26}{space 2} .1684539{col 37}{space 1}   -2.83{col 46}{space 3}0.005{col 54}{space 4} -.808554{col 67}{space 3}-.1434925
+{txt}{space 12} {c |}
+{space 10}wp {c |}
+{space 9}L1. {c |}{col 14}{res}{space 2}-.9285162{col 26}{space 2} .2923454{col 37}{space 1}   -3.18{col 46}{space 3}0.002{col 54}{space 4}-1.505611{col 67}{space 3}-.3514216
+{txt}{space 12} {c |}
+{space 11}t {c |}{col 14}{res}{space 2}  .000069{col 26}{space 2}  .001603{col 37}{space 1}    0.04{col 46}{space 3}0.966{col 54}{space 4}-.0030953{col 67}{space 3} .0032333
+{txt}{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}SR           {txt}{c |}
+{space 8}fbcf {c |}
+{space 9}LD. {c |}{col 14}{res}{space 2} 1.225431{col 26}{space 2} .0475707{col 37}{space 1}   25.76{col 46}{space 3}0.000{col 54}{space 4} 1.131526{col 67}{space 3} 1.319337
+{txt}{space 8}L2D. {c |}{col 14}{res}{space 2}-.5814328{col 26}{space 2} .0556574{col 37}{space 1}  -10.45{col 46}{space 3}0.000{col 54}{space 4}-.6913014{col 67}{space 3}-.4715642
+{txt}{space 12} {c |}
+{space 9}cib {c |}
+{space 9}D1. {c |}{col 14}{res}{space 2} .0025789{col 26}{space 2} .0064544{col 37}{space 1}    0.40{col 46}{space 3}0.690{col 54}{space 4}-.0101623{col 67}{space 3} .0153201
+{txt}{space 12} {c |}
+{space 8}curi {c |}
+{space 9}D1. {c |}{col 14}{res}{space 2} .0447182{col 26}{space 2} .0408327{col 37}{space 1}    1.10{col 46}{space 3}0.275{col 54}{space 4}-.0358864{col 67}{space 3} .1253227
+{txt}{space 12} {c |}
+{space 8}embi {c |}
+{space 9}D1. {c |}{col 14}{res}{space 2} .0036575{col 26}{space 2} .0022232{col 37}{space 1}    1.65{col 46}{space 3}0.102{col 54}{space 4} -.000731{col 67}{space 3} .0080461
+{txt}{space 12} {c |}
+{space 10}er {c |}
+{space 9}D1. {c |}{col 14}{res}{space 2}-.0063839{col 26}{space 2} .0079437{col 37}{space 1}   -0.80{col 46}{space 3}0.423{col 54}{space 4}-.0220648{col 67}{space 3} .0092971
+{txt}{space 12} {c |}
+{space 8}ibov {c |}
+{space 9}D1. {c |}{col 14}{res}{space 2} .0047032{col 26}{space 2} .0034493{col 37}{space 1}    1.36{col 46}{space 3}0.175{col 54}{space 4}-.0021057{col 67}{space 3} .0115122
+{txt}{space 12} {c |}
+{space 9}ice {c |}
+{space 9}D1. {c |}{col 14}{res}{space 2}  .012675{col 26}{space 2}  .013283{col 37}{space 1}    0.95{col 46}{space 3}0.341{col 54}{space 4}-.0135458{col 67}{space 3} .0388959
+{txt}{space 12} {c |}
+{space 9}ici {c |}
+{space 9}D1. {c |}{col 14}{res}{space 2}-.0046585{col 26}{space 2} .0155314{col 37}{space 1}   -0.30{col 46}{space 3}0.765{col 54}{space 4}-.0353177{col 67}{space 3} .0260007
+{txt}{space 12} {c |}
+{space 9}iie {c |}
+{space 9}D1. {c |}{col 14}{res}{space 2}-.0036052{col 26}{space 2} .0058408{col 37}{space 1}   -0.62{col 46}{space 3}0.538{col 54}{space 4}-.0151351{col 67}{space 3} .0079247
+{txt}{space 12} {c |}
+{space 10}ir {c |}
+{space 9}D1. {c |}{col 14}{res}{space 2} -.001717{col 26}{space 2} .0006483{col 37}{space 1}   -2.65{col 46}{space 3}0.009{col 54}{space 4}-.0029968{col 67}{space 3}-.0004372
+{txt}{space 12} {c |}
+{space 8}lagr {c |}
+{space 9}D1. {c |}{col 14}{res}{space 2} .0002007{col 26}{space 2} .0007317{col 37}{space 1}    0.27{col 46}{space 3}0.784{col 54}{space 4}-.0012437{col 67}{space 3} .0016451
+{txt}{space 12} {c |}
+{space 8}lcom {c |}
+{space 9}D1. {c |}{col 14}{res}{space 2} .0002946{col 26}{space 2} .0011086{col 37}{space 1}    0.27{col 46}{space 3}0.791{col 54}{space 4}-.0018939{col 67}{space 3}  .002483
+{txt}{space 12} {c |}
+{space 8}lind {c |}
+{space 9}D1. {c |}{col 14}{res}{space 2} .0012615{col 26}{space 2} .0012908{col 37}{space 1}    0.98{col 46}{space 3}0.330{col 54}{space 4}-.0012867{col 67}{space 3} .0038096
+{txt}{space 12} {c |}
+{space 8}linf {c |}
+{space 9}D1. {c |}{col 14}{res}{space 2}-.0005502{col 26}{space 2} .0009844{col 37}{space 1}   -0.56{col 46}{space 3}0.577{col 54}{space 4}-.0024935{col 67}{space 3} .0013931
+{txt}{space 12} {c |}
+{space 8}nfsp {c |}
+{space 9}D1. {c |}{col 14}{res}{space 2}-.0021748{col 26}{space 2} .0007412{col 37}{space 1}   -2.93{col 46}{space 3}0.004{col 54}{space 4} -.003638{col 67}{space 3}-.0007116
+{txt}{space 12} {c |}
+{space 9}pib {c |}
+{space 9}D1. {c |}{col 14}{res}{space 2} 1.020499{col 26}{space 2} .1104555{col 37}{space 1}    9.24{col 46}{space 3}0.000{col 54}{space 4}  .802458{col 67}{space 3}  1.23854
+{txt}{space 9}LD. {c |}{col 14}{res}{space 2}-1.343386{col 26}{space 2} .1505065{col 37}{space 1}   -8.93{col 46}{space 3}0.000{col 54}{space 4}-1.640488{col 67}{space 3}-1.046283
+{txt}{space 8}L2D. {c |}{col 14}{res}{space 2} .4421877{col 26}{space 2} .1370597{col 37}{space 1}    3.23{col 46}{space 3}0.002{col 54}{space 4} .1716296{col 67}{space 3} .7127458
+{txt}{space 12} {c |}
+{space 8}poup {c |}
+{space 9}D1. {c |}{col 14}{res}{space 2} .1423794{col 26}{space 2} .0393802{col 37}{space 1}    3.62{col 46}{space 3}0.000{col 54}{space 4} .0646423{col 67}{space 3} .2201165
+{txt}{space 9}LD. {c |}{col 14}{res}{space 2}-.1330123{col 26}{space 2} .0527258{col 37}{space 1}   -2.52{col 46}{space 3}0.013{col 54}{space 4}-.2370939{col 67}{space 3}-.0289308
+{txt}{space 8}L2D. {c |}{col 14}{res}{space 2} .1144492{col 26}{space 2} .0392714{col 37}{space 1}    2.91{col 46}{space 3}0.004{col 54}{space 4} .0369267{col 67}{space 3} .1919717
+{txt}{space 12} {c |}
+{space 10}tt {c |}
+{space 9}D1. {c |}{col 14}{res}{space 2}-.0236081{col 26}{space 2} .0145944{col 37}{space 1}   -1.62{col 46}{space 3}0.108{col 54}{space 4}-.0524178{col 67}{space 3} .0052015
+{txt}{space 9}LD. {c |}{col 14}{res}{space 2} .0303421{col 26}{space 2} .0142016{col 37}{space 1}    2.14{col 46}{space 3}0.034{col 54}{space 4} .0023079{col 67}{space 3} .0583762
+{txt}{space 12} {c |}
+{space 10}wp {c |}
+{space 9}D1. {c |}{col 14}{res}{space 2} .1002104{col 26}{space 2}  .066041{col 37}{space 1}    1.52{col 46}{space 3}0.131{col 54}{space 4}-.0301556{col 67}{space 3} .2305764
+{txt}{space 12} {c |}
+{space 7}_cons {c |}{col 14}{res}{space 2}-.8785463{col 26}{space 2} .4366586{col 37}{space 1}   -2.01{col 46}{space 3}0.046{col 54}{space 4}-1.740518{col 67}{space 3} -.016575
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+
+{com}. 
+. // gera a tabela com os coeficientes de curto-prazo na representação em t
+. outreg2 using sr-ecm1_ardl2_ln, eqdrop(LR) tex(frag) nocons replace
+{txt}{stata `"shellout using `"sr-ecm1_ardl2_ln.tex"'"':sr-ecm1_ardl2_ln.tex}
+{browse `"D:\Google Drive\_DOUTORADO\__TESE\_TESE_3rd\Tese3rda\artigo1\stata\ardlmodel4ln"' :dir}{com} : {txt}{stata `"seeout using "sr-ecm1_ardl2_ln.txt""':seeout}
+
+{com}. 
+. /******************************************/
+. // Configura o padrão das saídas gráficas
+. set scheme s2mono
+{txt}
+{com}. grstyle init
+{res}{txt}
+{com}. grstyle gsize axis_title_gap tiny
+{txt}
+{com}. grstyle yesno draw_major_hgrid yes
+{txt}
+{com}. grstyle anglestyle horizontal_tick vertical
+{txt}
+{com}. /******************************************/
+. 
+. predict yhat if e(sample), xb
+{txt}(3 missing values generated)
+
+{com}. tsline yhat d.fbcf
+{res}{txt}
+{com}. graph save fcast_ardl2, replace
+{res}{txt}(file fcast_ardl2.gph saved)
+
+{com}. graph export fcast_ardl2_ln.png, width(600) height(450) replace
+{txt}(file fcast_ardl2_ln.png written in PNG format)
+
+{com}. 
+. fcstats d.fbcf yhat
+
+{res}Forecast accuracy statistics for D.fbcf, N = 203
+
+{col 15}yhat
+RMSE  {col 15}.00330227
+MAE   {col 15}.00256482
+MAPE  {col 15}-.52250978
+Theil's U {col 15}.59586104
+{txt}
+{com}. 
+. /*esttab ecm_model4_ln ecm_model4_ln1 using "ecm_model4ln.tex" , r2 ar2 p /// 
+> booktabs ///
+> title("{c -(}Coeficientes de curto-prazo do modelo com desembolsos setoriais (ECM)."\label{c -(}tabsumardlmodel4ln-sr{c )-}) ///
+> mtitles("ECM" "ECM1") replace */
+. 
+. * F-Bound test
+. estat ectest
+
+{txt}Pesaran, Shin, and Smith (2001) bounds test
+
+H0: no level relationship{col 66}F ={res}     4.023
+{txt}Case {res}4{col 66}{txt}t ={res}    -4.953
+
+{txt}Finite sample ({res}18{txt} variables, {res}203{txt} observations, {res}12{txt} short-run coefficients)
+
+Kripfganz and Schneider (2018) critical values and approximate p-values
+{res}
+{txt}{space 0}{space 3}{c |}{res}{txt}{space 1}{lalign 7:10%}{space 1}{space 9}{c |}{res}{txt}{space 1}{lalign 7:5%}{space 1}{space 9}{c |}{res}{txt}{space 1}{lalign 7:1%}{space 1}{space 9}{c |}{res}{txt}{space 1}{lalign 7:p-value}{space 1}{space 8}
+{space 0}{space 0}{ralign 2:}{space 1}{c |}{space 1}{ralign 7:I(0)}{space 1}{space 1}{ralign 7:I(1)}{space 1}{c |}{space 1}{ralign 7:I(0)}{space 1}{space 1}{ralign 7:I(1)}{space 1}{c |}{space 1}{ralign 7:I(0)}{space 1}{space 1}{ralign 7:I(1)}{space 1}{c |}{space 1}{ralign 7:I(0)}{space 1}{space 1}{ralign 7:I(1)}{space 0}
+{space 0}{hline 3}{c   +}{hline 9}{hline 9}{c   +}{hline 9}{hline 9}{c   +}{hline 9}{hline 9}{c   +}{hline 9}{hline 8}
+{space 0}{space 0}{ralign 2:F}{space 1}{c |}{space 1}{ralign 7:{res:{sf:  1.709}}}{space 1}{space 1}{ralign 7:{res:{sf:  2.830}}}{space 1}{c |}{space 1}{ralign 7:{res:{sf:  1.894}}}{space 1}{space 1}{ralign 7:{res:{sf:  3.081}}}{space 1}{c |}{space 1}{ralign 7:{res:{sf:  2.284}}}{space 1}{space 1}{ralign 7:{res:{sf:  3.605}}}{space 1}{c |}{space 1}{ralign 7:{res:{sf:  0.000}}}{space 1}{space 1}{ralign 7:{res:{sf:  0.003}}}{space 0}
+{space 0}{space 0}{ralign 2:t}{space 1}{c |}{space 1}{ralign 7:{res:{sf: -3.047}}}{space 1}{space 1}{ralign 7:{res:{sf: -5.389}}}{space 1}{c |}{space 1}{ralign 7:{res:{sf: -3.352}}}{space 1}{space 1}{ralign 7:{res:{sf: -5.763}}}{space 1}{c |}{space 1}{ralign 7:{res:{sf: -3.950}}}{space 1}{space 1}{ralign 7:{res:{sf: -6.470}}}{space 1}{c |}{space 1}{ralign 7:{res:{sf:  0.000}}}{space 1}{space 1}{ralign 7:{res:{sf:  0.196}}}{space 0}
+
+do not reject H0 if
+    both F and t are closer to zero than critical values for I(0) variables
+      (if p-values > desired level for I(0) variables)
+reject H0 if
+    both F and t are more extreme than critical values for I(1) variables
+      (if p-values < desired level for I(1) variables)
+
+{com}. mat ftest = r(cvmat)
+{txt}
+{com}. esttab matrix(ftest) using "ftest_ardl4ln.tex", ///
+> booktabs title("Pesaran, Shin, and Smith (2001) bounds test Case 4"\label{c -(}tab:model4ln-bounds{c )-}) ///
+> replace
+{res}{txt}(output written to {browse  `"ftest_ardl4ln.tex"'})
+
+{com}. 
+. /*(ardl fbcf cib curi embi er ibov ice ici iie ir lagr lcom lind linf /// 
+> nfsp wp poup tt wp, ec trendvar(t) restricted bic maxlags(4 1 1 1 1 1 1 1 1 2 1 1 1 1 1 4 4 3 2) ///
+> maxcombs(30000000) */
+. 
+. ** POST-ESTIMATION
+. 
+. 
+. /* assess the independence of the residuals by testing for normality 
+> using Skewness/Kurtosis tests by running*/
+. predict res1, residuals  
+{txt}(3 missing values generated)
+
+{com}. sktest res1
+{res}
+{txt}Skewness and kurtosis tests for normality
+{col 58}{hline 5} Joint test {hline 5}
+{col 5}Variable {c |}{col 22}Obs   Pr(skewness)   Pr(kurtosis)   Adj chi2(2)  Prob>chi2
+{hline 13}{c +}{hline 65}
+        res1 {c |}{res}{col 16}      203{col 34}0.0571{col 49}0.0255{col 60}     7.93{col 74}0.0189
+{txt}
+{com}. qnorm res1
+{res}{txt}
+{com}. graph save qnorm_ardl2_ln, replace
+{res}{txt}(file qnorm_ardl2_ln.gph saved)
+
+{com}. graph export qnorm_ardl2_ln.png, width(600) height(450) replace
+{txt}(file qnorm_ardl2_ln.png written in PNG format)
+
+{com}. 
+. pnorm res1
+{res}{txt}
+{com}. graph save pnorm_ardl2_ln, replace
+{res}{txt}(file pnorm_ardl2_ln.gph saved)
+
+{com}. graph export pnorm_ardl2_ln.png, width(600) height(450) replace
+{txt}(file pnorm_ardl2_ln.png written in PNG format)
+
+{com}. 
+. estimates restore ecm_model4_ln1
+{txt}(results {stata estimates replay ecm_model4_ln1:ecm_model4_ln1} are active now)
+
+{com}. 
+. * Shapiro-Wilk Test
+. swilk res1
+
+                   {txt}Shapiro-Wilk W test for normal data
+
+    Variable {c |}        Obs{col 33}W{col 45}V{col 55}z       Prob>z
+{hline 13}{c +}{hline 54}
+        res1 {c |} {res}       203    0.98925      1.625     1.118    0.13181
+{txt}
+{com}. 
+. /*performs three versions of the Breusch-Pagan (1979) and Cook-Weisberg (1983) test for heteroskedasticity.*/
+. estat hettest
+
+{txt}Breusch-Pagan / Cook-Weisberg test for heteroskedasticity 
+         Ho: Constant variance
+{p 9 20}Variables: fitted values of D.fbcf
+
+{col 10}chi2({res}1{txt}){col 23}={res}     0.04
+{txt}{col 10}Prob > chi2{col 23}={res}   0.8385
+{txt}
+{com}. 
+. /*we test for heteroskedasticity in the residuals using Cameron & 
+> Trivedi’s decomposition of IM-test by running*/
+. estat imtest, white
+
+{txt}White's test for Ho: homoskedasticity
+         against Ha: unrestricted heteroskedasticity
+
+{col 10}chi2({res}202{txt}){col 23}= {res}   203.00
+{col 10}{txt}Prob > chi2  = {res}   0.4670
+
+{txt}Cameron & Trivedi's decomposition of IM-test
+
+{hline 21}{c TT}{hline 29}
+{ralign 20:Source} {c |}       chi2     df      p
+{hline 21}{c +}{hline 29}
+{ralign 20:Heteroskedasticity} {c |}{res}     203.00    202    0.4670
+{txt}{ralign 20:Skewness} {c |}{res}      39.10     32    0.1810
+{txt}{ralign 20:Kurtosis} {c |}{res}       1.16      1    0.2819
+{txt}{hline 21}{c +}{hline 29}
+{ralign 20:Total} {c |}{res}     243.26    235    0.3419
+{txt}{hline 21}{c BT}{hline 29}
+
+{com}. 
+. /*examine the residuals of the estimated model for autocorrelation 
+> using BreuschGodfrey LM test by running*/
+. estat bgodfrey, lags(1/3) small
+
+{txt}Breusch-Godfrey LM test for autocorrelation
+{hline 13}{c TT}{hline 61}
+{col 5}lags({it:p}){col 14}{c |}{col 25}F{col 44}df{col 63}Prob > F
+{hline 13}{c +}{hline 61}
+{col 6}  1{col 14}{c |}{res}{col 18}     2.239{col 39}(  1,  169 ){col 63}  0.1364
+{txt}{col 6}  2{col 14}{c |}{res}{col 18}     2.304{col 39}(  2,  168 ){col 63}  0.1030
+{txt}{col 6}  3{col 14}{c |}{res}{col 18}    17.299{col 39}(  3,  167 ){col 63}  0.0000
+{txt}{hline 13}{c BT}{hline 61}
+{col 25}H0: no serial correlation
+
+{com}. /*examine the residuals of the estimated model for autocorrelation 
+> using Durbin alternative test by running*/
+. estat durbinalt, lags(1/3) small
+
+{txt}Durbin's alternative test for autocorrelation
+{hline 13}{c TT}{hline 61}
+{col 5}lags({it:p}){col 14}{c |}{col 25}F{col 44}df{col 63}Prob > F
+{hline 13}{c +}{hline 61}
+{col 6}  1{col 14}{c |}{res}{col 18}     1.885{col 39}(  1,  169 ){col 63}  0.1716
+{txt}{col 6}  2{col 14}{c |}{res}{col 18}     1.951{col 39}(  2,  168 ){col 63}  0.1453
+{txt}{col 6}  3{col 14}{c |}{res}{col 18}    19.118{col 39}(  3,  167 ){col 63}  0.0000
+{txt}{hline 13}{c BT}{hline 61}
+{col 25}H0: no serial correlation
+
+{com}. 
+. // Stability tests
+. *Ramsey RESET test 
+. estat ovtest
+
+{txt}Ramsey RESET test using powers of the fitted values of D.fbcf
+       Ho:  model has no omitted variables
+                 F(3, 167) = {res}     2.62
+                  {txt}Prob > F =      {res}0.0526
+{txt}
+{com}. *CUSUM - residuals fluctuation empirical test
+. estat sbcusum
+{res}
+{txt}Cumulative sum test for parameter stability
+
+{txt:Sample}:{res:  2003m2 - 2019m12} {col 52}Number of obs = {res}       203
+{txt}Ho: No structural break
+
+{col 32}1% Critical{col 50}5% Critical{col 67}10% Critical
+ Statistic{col 14}Test Statistic{col 36}Value{col 54}Value{col 72}Value
+{hline 78}
+{col 2}recursive{col 13}{res}    0.4568{col 31}    1.1430{col 49}    0.9479{col 67}     0.850
+{txt}{hline 78}
+
+{com}. graph save cusum_ardl2_ln,replace
+{res}{txt}(file cusum_ardl2_ln.gph saved)
+
+{com}. graph export cusum_ardl2_ln.png, width(600) height(450) replace
+{txt}(file cusum_ardl2_ln.png written in PNG format)
+
+{com}. 
+. 
+. estat sbcusum, ols
+{res}
+{txt}Cumulative sum test for parameter stability
+
+{txt:Sample}:{res:  2003m2 - 2019m12} {col 52}Number of obs = {res}       203
+{txt}Ho: No structural break
+
+{col 32}1% Critical{col 50}5% Critical{col 67}10% Critical
+ Statistic{col 14}Test Statistic{col 36}Value{col 54}Value{col 72}Value
+{hline 78}
+{col 2}ols{col 13}{res}    0.3501{col 31}    1.6276{col 49}    1.3581{col 67}     1.224
+{txt}{hline 78}
+
+{com}. graph save cusumols_ardl2_ln,replace
+{res}{txt}(file cusumols_ardl2_ln.gph saved)
+
+{com}. graph export cusumols_ardl2_ln.png, width(600) height(450) replace
+{txt}(file cusumols_ardl2_ln.png written in PNG format)
+
+{com}. 
+. *CUMSUM and CUMSUM2
+. cusum9 D.fbcf L(1/3)D.fbcf
+{res}{txt}
+{com}. graph save cusumsq_ardl2_ln,replace
+{res}{txt}(file cusumsq_ardl2_ln.gph saved)
+
+{com}. graph export cusumsq_ardl2_ln.png, width(600) height(450) replace
+{txt}(file cusumsq_ardl2_ln.png written in PNG format)
+
+{com}. 
+. /*
+> ** POST-ESTIMATION
+> 
+> estimates restore ecm_model4_ln2
+> 
+> /* assess the independence of the residuals by testing for normality 
+> using Skewness/Kurtosis tests by running*/
+> predict res2, residuals  
+> sktest res2
+> qnorm res2
+> pnorm res2
+> 
+> * Shapiro-Wilk Test
+> swilk res2
+> 
+> /*performs three versions of the Breusch-Pagan (1979) and Cook-Weisberg (1983) test for heteroskedasticity.*/
+> estat hettest
+> 
+> /*we test for heteroskedasticity in the residuals using Cameron & 
+> Trivedi’s decomposition of IM-test by running*/
+> estat imtest, white
+> 
+> /*examine the residuals of the estimated model for autocorrelation 
+> using BreuschGodfrey LM test by running*/
+> estat bgodfrey, lags(1/3) small
+> /*examine the residuals of the estimated model for autocorrelation 
+> using Durbin alternative test by running*/
+> estat durbinalt, lags(1/3) small
+> 
+> // Stability tests
+> *Ramsey RESET test 
+> estat ovtest
+> *CUSUM - residuals fluctuation empirical test
+> estat sbcusum
+> 
+> estat sbcusum, ols
+> 
+> *CUMSUM and CUMSUM2
+> cusum9 D.fbcf L(1/3)D.fbcf
+> 
+> // Simulação ECM
+> /*dynardl fbcf cib curi embi er ibov ice ici iie ir lagr lcom lind linf /// 
+> nfsp poup tt wp, ///
+> lags(3 1 0 0 1 0 1 2 0 0 0 0 0 3 0 0 0 0) ec1 trendvar(t) restricted*/
+> */
+. * close log file
+. log close
+      {txt}name:  {res}<unnamed>
+       {txt}log:  {res}D:\Google Drive\_DOUTORADO\__TESE\_TESE_3rd\Tese3rda\artigo1\stata\ardlmodel4ln\log-ardl4_ln.18 Jul 202121_03_45.smcl
+  {txt}log type:  {res}smcl
+ {txt}closed on:  {res}18 Jul 2021, 21:04:26
+{txt}{.-}
+{smcl}
+{txt}{sf}{ul off}

@@ -1,0 +1,160 @@
+{smcl}
+{txt}{sf}{ul off}{.-}
+      name:  {res}<unnamed>
+       {txt}log:  {res}C:\Dropbox\ANTT\AR-2017-2018\Fator X\1.PROJETO\STATA\Analysis-DEA-SFA\DEA\logDEA. 8 Dec 201710_58_53
+  {txt}log type:  {res}smcl
+ {txt}opened on:  {res} 8 Dec 2017, 10:58:53
+{txt}
+{com}. 
+. ** /////////////////////////////////////////////////////////////////////////////
+> /************************************************************************
+> (2) ANÁLISE DEA, TOMANDO COMO VARIÁVEIS:
+> - INPUTS: REC; CUST;
+> - OUTPUTS:  AVG;
+> 
+> 
+> *************************************** Comentário anterior ************************************************************
+> * A Escolha das variáveis leva em conta a análise realizada na parte (1), em que se 
+> verifica a relação positiva entre Custos Totais por km e a avaliação geral do trecho, quando se avalia o efeito de cada variável por etapa no modelo RE. Por outro lado, o aumento da receita não implica em melhora na avaliação geral. Isto posto, o modelo parte da premissa de que, por meio da abordagem DEA orientada a input, é possível identificar aquelas unidades em há melhor equilíbrio relativo entre receitas, custos e avaliação geral. 
+> A ideia seria classificar como ineficiente, aquela unidade em que as receitas estão em um nível muito elevado em relação aos custos totais e a avaliação geral do trecho.
+> 
+> Vale a observação de que Profeta (PROFETA, 2014: REGULAÇÃO E EFICIÊNCIA DOS MODELOS DE CONCESSÕES DE RODOVIAS NO BRASIL, TESE DE DOUTORADO - UFV/MG) entendeu que a eficiência estaria relacionada simplesmente à minimização dos custos totais. Assim elegeu como INPUT custos totais, e como OUTPUS Receitas Totais e Avaliação Geral. Contudo, aparentemente, Profeta não se atentou ao fato de que, de acordo com os relatórios financeiros das concessionárias, os custos totais incluem investimentos, que naturalmente implicam em melhora da condição da rodovia (e por consequência na sua avaliação. Assim, pode ser que não faça sentido a eficiência estar baseada na minimização desses custos.
+> Os resultados da parte (1) parecem indicar também esse fato e, por isso, optou-se por uma configuração diferente de INPUTs e OUTPUTs.
+> *************************************** Comentário atualizado **********************************************************
+> 
+> OUTPUT ORIENTED (para compatibilizar com SFA)
+> 
+> 
+> *************************************************************************/
+. 
+. // apaga qualquer unidade que tenha valor de receita ou custo nulo 
+. drop if rec  <=0 
+{txt}(0 observations deleted)
+
+{com}. drop if cust <=0
+{txt}(1 observation deleted)
+
+{com}. 
+. /*
+> subsititui os id's originais por id's para dados em painel (um id para cada concessionária)
+> */
+. // lista de concessionárias na base de dados 
+. levelsof conc, local(concs)
+{res}{txt}`"AUTOFERNAODIAS"' `"AUTOFLUMINENSE"' `"AUTOLITORALSUL"' `"AUTOPLANALTOSUL"' `"AUTOREGIS"' `"CCRPONTE "' `"CONCEBRA"' `"CONCEPA  "' `"CONCER"' `"CRO"' `"CRT"' `"ECO101"' `"ECOPONTE"' `"ECOSUL"' `"MGORODOVIAS"' `"MSVIA"' `"NOVADUTRA"' `"RODOVIADOACO"' `"TRANSBRASILIANA"' `"VIA040"' `"VIABAHIA"'
+
+{com}. // contador local para gerar id
+. local count 1
+{txt}
+{com}. // loop na lista de concessionárias
+. foreach v in `concs'{c -(}
+{txt}  2{com}.         
+.         // substitui o id original, para os casos em que há match entre o nome da
+.         // concessionária na base e na lista de nomes 
+.         quietly replace id = `count' if conc == "`v'"
+{txt}  3{com}.         local ++count // atualiza o contador de id
+{txt}  4{com}. {c )-}
+{txt}
+{com}. 
+. // gera variáveis dummy para marcar as etapas
+. quietly gen dEtapa2 = (etp==2)
+{txt}
+{com}. quietly gen dEtapa3 = (etp==3)
+{txt}
+{com}. 
+. // Como a análise na parte (1) indicou não haver variação relevante nas variáveis ao longo do tempo, optou-se por calcular as médias do período das variáveis de input e output
+. quietly bysort id: egen custm = mean(cust_km)
+{txt}
+{com}. quietly bysort id: egen recm = mean(rec_km)
+{txt}
+{com}. quietly bysort id: egen avgm = mean(avg)
+{txt}
+{com}. quietly bysort id: egen tarm = mean(tar)
+{txt}
+{com}. // identifica duplicatas
+. quietly by id: gen dup = cond(_N==1, 0, _n)
+{txt}
+{com}. // apaga duplicatas
+. drop if dup > 1
+{txt}(60 observations deleted)
+
+{com}. 
+. // gera índices para as DMUs
+. quietly gen dmu = id
+{txt}
+{com}. 
+. // apaga variáveis dispensáveis para a análise DEA
+. quietly drop id ano anoconc cust cust_km rec rec_km avg dup
+{txt}
+{com}. 
+. // salva dados para simulação DEA
+. save data_dea, replace
+{txt}file data_dea.dta saved
+
+{com}. 
+. // define inputs e outputs da análise DEA
+. global inp recm custm
+{txt}
+{com}. global out avgm 
+{txt}
+{com}. 
+. 
+. /***********************************************************************
+> ANÁLISE DEA CONSIDERANDO AS ORIENTAÇÕES INPUT E OUTPUT
+> ************************************************************************/
+. foreach direction in i o{c -(}
+{txt}  2{com}. 
+.         * DEA - variable returns to scale
+.         quietly: dea $inp = $out, rts(vrs) ort(`direction') stage(2) saving(dea_results)
+{txt}  3{com}.         mat deascores = r(dearslt)
+{txt}  4{com}.         mat deascores = deascores[1...,"theta"]
+{txt}  5{com}.         sort dmu
+{txt}  6{com}.         cap drop dea1
+{txt}  7{com}.         svmat deascores, names(dea)
+{txt}  8{com}.         rename dea1 deascore_`direction'
+{txt}  9{com}.         gen efficient_`direction' = deascore_`direction' == 1
+{txt} 10{com}. 
+. {c )-}
+options: RTS(VRS) ORT(IN) STAGE(2)
+{res}{com}options: RTS(VRS) ORT(OUT) STAGE(2)
+{res}{txt}
+{com}. 
+. * Escores de eficiência após primeiro estágio
+. tabstat deascore_i deascore_o efficient_i efficient_o, columns(statistics) statistics(mean sd median min max) format(%7.0g)
+
+{txt}{ralign 12:variable} {...}
+{c |}      mean        sd       p50       min       max
+{hline 13}{c +}{hline 50}
+{ralign 12:deascore_i} {...}
+{c |}{...}
+   {res} .66718    .35549     .6983    .02532         1
+{txt}{ralign 12:deascore_o} {...}
+{c |}{...}
+   {res}  .9185    .07844    .91342    .71903         1
+{txt}{ralign 12:efficient_i} {...}
+{c |}{...}
+   {res} .38095    .49761         0         0         1
+{txt}{ralign 12:efficient_o} {...}
+{c |}{...}
+   {res} .28571    .46291         0         0         1
+{txt}{hline 13}{c BT}{hline 50}
+
+{com}. 
+. savesome dmu conc deascore_o using eff_dea
+{err}{p 0 4 2}
+file eff_dea.dta
+already exists
+{p_end}
+{txt}{search r(602), local:r(602);}
+
+end of do-file
+
+{search r(602), local:r(602);}
+
+{com}. log close
+      {txt}name:  {res}<unnamed>
+       {txt}log:  {res}C:\Dropbox\ANTT\AR-2017-2018\Fator X\1.PROJETO\STATA\Analysis-DEA-SFA\DEA\logDEA. 8 Dec 201710_58_53
+  {txt}log type:  {res}smcl
+ {txt}closed on:  {res} 8 Dec 2017, 10:59:17
+{txt}{.-}
+{smcl}
+{txt}{sf}{ul off}

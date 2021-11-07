@@ -1,0 +1,765 @@
+{smcl}
+{txt}{sf}{ul off}{.-}
+      name:  {res}<unnamed>
+       {txt}log:  {res}C:\Dropbox\ANTT\AR-2017-2018\Fator X\1.PROJETO\STATA\Analysis-DEA-SFA\SFA\logSFA. 8 Dec 201710_29_30
+  {txt}log type:  {res}smcl
+ {txt}opened on:  {res} 8 Dec 2017, 10:29:30
+{txt}
+{com}. 
+. /************************************************************************
+> (3) ANÁLISE SFA, TOMANDO COMO VARIÁVEIS:
+> - INPUTS: REC; CUST;
+> - OUTPUTS: AVG 
+> 
+> OUTPUT ORIENTED
+> *************************************************************************/
+. * set the directory to the location of .ado files 
+. * .ado files from:
+. *
+. * A Practitioner's Guide to Stochastic Frontier Analysis Using Stata         
+. * Subal C. Kumbhakar, Hung-Jen Wang and Alan P. Horncastle                     
+. *                                                                               
+. //adopath ++ "C:\ado\personal\sfbook\sfbook_ado"
+. 
+. // apaga qualquer unidade que tenha valor de receita ou custo nulo 
+. drop if rec  <=0 
+{txt}(0 observations deleted)
+
+{com}. drop if cust <=0
+{txt}(1 observation deleted)
+
+{com}. 
+. /*
+> subsititui os id's originais por id's para dados em painel (um id para cada concessionária)
+> */
+. // lista de concessionárias na base de dados 
+. levelsof conc, local(concs)
+{res}{txt}`"AUTOFERNAODIAS"' `"AUTOFLUMINENSE"' `"AUTOLITORALSUL"' `"AUTOPLANALTOSUL"' `"AUTOREGIS"' `"CCRPONTE "' `"CONCEBRA"' `"CONCEPA  "' `"CONCER"' `"CRO"' `"CRT"' `"ECO101"' `"ECOPONTE"' `"ECOSUL"' `"MGORODOVIAS"' `"MSVIA"' `"NOVADUTRA"' `"RODOVIADOACO"' `"TRANSBRASILIANA"' `"VIA040"' `"VIABAHIA"'
+
+{com}. // contador local para gerar id
+. local count 1
+{txt}
+{com}. // loop na lista de concessionárias
+. foreach v in `concs'{c -(}
+{txt}  2{com}.         
+.         // substitui o id original, para os casos em que há match entre o nome da
+.         // concessionária na base e na lista de nomes 
+.         quietly replace id = `count' if conc == "`v'"
+{txt}  3{com}.         local ++count // atualiza o contador de id
+{txt}  4{com}. {c )-}
+{txt}
+{com}. 
+. // gera variáveis dummy para marcar as etapas
+. quietly gen dEtapa2 = (etp==2)
+{txt}
+{com}. quietly gen dEtapa3 = (etp==3)
+{txt}
+{com}. 
+. // Como a análise na parte (1) indicou não haver variação relevante nas variáveis ao longo do tempo, optou-se por calcular as médias do período das variáveis de input e output
+. quietly bysort id: egen custm = mean(cust_km)
+{txt}
+{com}. quietly bysort id: egen recm = mean(rec_km)
+{txt}
+{com}. quietly bysort id: egen avgm = mean(avg)
+{txt}
+{com}. quietly bysort id: egen tarm = mean(tar)
+{txt}
+{com}. // identifica duplicatas
+. quietly by id: gen dup = cond(_N==1, 0, _n)
+{txt}
+{com}. // apaga duplicatas
+. drop if dup > 1
+{txt}(60 observations deleted)
+
+{com}. 
+. // gera índices para as DMUs
+. quietly gen dmu = id
+{txt}
+{com}. 
+. // apaga variáveis dispensáveis para a análise DEA
+. quietly drop id ano anoconc cust cust_km rec rec_km avg dup
+{txt}
+{com}. 
+. // salva dados para simulação DEA
+. save data_sfa, replace
+{txt}(note: file data_sfa.dta not found)
+file data_sfa.dta saved
+
+{com}. 
+. /*
+> gera logaritmo das variáveis para a função de produção Cobb-Douglas
+> 
+> */
+. gen l_rec = log(recm)
+{txt}
+{com}. gen l_cust = log(custm)
+{txt}
+{com}. gen l_avg = log(avgm)
+{txt}
+{com}. 
+. // define inputs e outputs da análise SFA
+. global inp l_cust l_rec
+{txt}
+{com}. global out l_avg
+{txt}
+{com}. 
+. * variáveis explicativas
+. global reglist npp ext tar dEtapa2 dEtapa3
+{txt}
+{com}. 
+. ********************************************************************************************
+. * Testa se o modelo especificado é válido antes de proceder com as estimativas
+. * Foi utilizado o teste do terceiro momento do resíduo OLS (M3T) de Coelli (1995)
+. * para checar se os resíduos são assimétricos para a esquerda, o que confirmaria
+. * a possibilidade de ser utilizada a especificação para a função de produção. 
+. * Para uma função de produção de fronteira estocástica, o erro composto(v - u), u > 0 e v
+. * distribuído simetricamente em torno de zero, deve ter os resíduos da estimatica OLS
+. * enviesadas para a esquerda. 
+. ********************************************************************************************
+. reg $out $inp
+
+{txt}      Source {c |}       SS           df       MS      Number of obs   ={res}        21
+{txt}{hline 13}{c +}{hline 34}   F(2, 18)        = {res}     0.91
+{txt}       Model {c |} {res} .016661199         2    .0083306   {txt}Prob > F        ={res}    0.4190
+{txt}    Residual {c |} {res} .164194915        18   .00912194   {txt}R-squared       ={res}    0.0921
+{txt}{hline 13}{c +}{hline 34}   Adj R-squared   ={res}   -0.0088
+{txt}       Total {c |} {res} .180856114        20  .009042806   {txt}Root MSE        =   {res} .09551
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}       l_avg{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 6}l_cust {c |}{col 14}{res}{space 2}-.0083944{col 26}{space 2} .0286369{col 37}{space 1}   -0.29{col 46}{space 3}0.773{col 54}{space 4}-.0685584{col 67}{space 3} .0517695
+{txt}{space 7}l_rec {c |}{col 14}{res}{space 2} .0165046{col 26}{space 2} .0127635{col 37}{space 1}    1.29{col 46}{space 3}0.212{col 54}{space 4}-.0103106{col 67}{space 3} .0433197
+{txt}{space 7}_cons {c |}{col 14}{res}{space 2} 1.291496{col 26}{space 2} .1702766{col 37}{space 1}    7.58{col 46}{space 3}0.000{col 54}{space 4}  .933758{col 67}{space 3} 1.649234
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}{txt}
+{com}. predict e, residual
+{txt}
+{com}. sum e, detail
+
+                          {txt}Residuals
+{hline 61}
+      Percentiles      Smallest
+ 1%    {res}-.2273714      -.2273714
+{txt} 5%    {res}-.1201341      -.1201341
+{txt}10%    {res}-.0955945      -.0955945       {txt}Obs         {res}         21
+{txt}25%    {res}-.0595352      -.0722696       {txt}Sum of Wgt. {res}         21
+
+{txt}50%    {res} .0129365                      {txt}Mean          {res}-1.77e-10
+                        {txt}Largest       Std. Dev.     {res} .0906076
+{txt}75%    {res} .0588926       .0883815
+{txt}90%    {res} .1001082       .1001082       {txt}Variance      {res} .0082097
+{txt}95%    {res} .1014387       .1014387       {txt}Skewness      {res}-.6095923
+{txt}99%    {res} .1384076       .1384076       {txt}Kurtosis      {res} 2.946816
+{txt}
+{com}. sktest e, noadj
+{res}
+{col 21}{txt}Skewness/Kurtosis tests for Normality
+{col 59}{hline 6} joint {hline 6}
+{col 5}Variable {c |}        Obs  Pr(Skewness)  Pr(Kurtosis)     chi2(2)   Prob>chi2
+{hline 13}{c +}{hline 63}
+           e {c |}{res}{col 16}        21{col 31}0.1785{col 45}0.5970{col 54}     2.09{col 72}0.3517
+{txt}
+{com}. * notar que a distribuição é assimétrica para a esquerda (Skewness < 0)
+. quietly sum e
+{txt}
+{com}. local e_mean = r(mean)
+{txt}
+{com}. local N = r(N)
+{txt}
+{com}. egen double m2 = mean((e - `e_mean')^2)
+{txt}
+{com}. egen double m3 = mean((e - `e_mean')^3)
+{txt}
+{com}. gen double M3T = m3/sqrt(6*((m2)^3)/`N')
+{txt}
+{com}. di "Como ", M3T[1], " é negativo, então os resíduos são assimétricos para a esquerda (rejeição de H0: não há assimetria). "
+{res}Como  -1.1404427  é negativo, então os resíduos são assimétricos para a esquerda (rejeição de H0: não há assimetria). 
+{txt}
+{com}. 
+. 
+. *********************************************************************************************
+. // (1) OLS - Fronteira determinística
+. reg $out $inp, noconstant
+
+{txt}      Source {c |}       SS           df       MS      Number of obs   ={res}        21
+{txt}{hline 13}{c +}{hline 34}   F(2, 19)        = {res}   520.80
+{txt}       Model {c |} {res} 37.7692196         2  18.8846098   {txt}Prob > F        ={res}    0.0000
+{txt}    Residual {c |} {res} .688957962        19  .036260945   {txt}R-squared       ={res}    0.9821
+{txt}{hline 13}{c +}{hline 34}   Adj R-squared   ={res}    0.9802
+{txt}       Total {c |} {res} 38.4581775        21  1.83134179   {txt}Root MSE        =   {res} .19042
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}       l_avg{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 6}l_cust {c |}{col 14}{res}{space 2} .1830069{col 26}{space 2} .0269903{col 37}{space 1}    6.78{col 46}{space 3}0.000{col 54}{space 4} .1265156{col 67}{space 3} .2394982
+{txt}{space 7}l_rec {c |}{col 14}{res}{space 2} .0130884{col 26}{space 2} .0254317{col 37}{space 1}    0.51{col 46}{space 3}0.613{col 54}{space 4}-.0401408{col 67}{space 3} .0663177
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}{txt}
+{com}. eststo OLS
+{txt}
+{com}. 
+. predict e_ols, residual /* salva o resíduo da estimativa OLS na variável e */
+{txt}
+{com}. quietly summarize e_ols /* obtém as estatísticas sem imprimir nada na tela */
+{txt}
+{com}. gen double eff_ols = exp(e_ols)
+{txt}
+{com}. summarize eff_ols
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 5}eff_ols {c |}{res}         21    1.036107    .1912314   .6912769   1.526122
+{txt}
+{com}. 
+. *********************************************************************************************
+. // (2) COLS - Fronteira determinística (OLS Corrigido)
+. reg $out $inp, noconstant
+
+{txt}      Source {c |}       SS           df       MS      Number of obs   ={res}        21
+{txt}{hline 13}{c +}{hline 34}   F(2, 19)        = {res}   520.80
+{txt}       Model {c |} {res} 37.7692196         2  18.8846098   {txt}Prob > F        ={res}    0.0000
+{txt}    Residual {c |} {res} .688957962        19  .036260945   {txt}R-squared       ={res}    0.9821
+{txt}{hline 13}{c +}{hline 34}   Adj R-squared   ={res}    0.9802
+{txt}       Total {c |} {res} 38.4581775        21  1.83134179   {txt}Root MSE        =   {res} .19042
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}       l_avg{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 6}l_cust {c |}{col 14}{res}{space 2} .1830069{col 26}{space 2} .0269903{col 37}{space 1}    6.78{col 46}{space 3}0.000{col 54}{space 4} .1265156{col 67}{space 3} .2394982
+{txt}{space 7}l_rec {c |}{col 14}{res}{space 2} .0130884{col 26}{space 2} .0254317{col 37}{space 1}    0.51{col 46}{space 3}0.613{col 54}{space 4}-.0401408{col 67}{space 3} .0663177
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}{txt}
+{com}. eststo COLS
+{txt}
+{com}. 
+. predict e_cols, residual /* salva o resíduo da estimativa OLS na variável e */
+{txt}
+{com}. quietly summarize e_cols /* obtém as estatísticas sem imprimir nada na tela */
+{txt}
+{com}. gen double u_star = -(e_cols - r(max)) /* obtém ineficiência a partir dos resíduos corrigidos */ 
+{txt}
+{com}. gen double eff_cols = exp(-u_star) /* calcula eficiência técnica */
+{txt}
+{com}. summarize eff_cols
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 4}eff_cols {c |}{res}         21    .6789152    .1253054   .4529631          1
+{txt}
+{com}. list conc u_star eff_cols
+{txt}
+     {c TLC}{hline 17}{c -}{hline 11}{c -}{hline 11}{c TRC}
+     {c |} {res}           conc      u_star    eff_cols {txt}{c |}
+     {c LT}{hline 17}{c -}{hline 11}{c -}{hline 11}{c RT}
+  1. {c |} {res} AUTOFERNAODIAS   .49255131   .61106539 {txt}{c |}
+  2. {c |} {res} AUTOFLUMINENSE   .53801618   .58390547 {txt}{c |}
+  3. {c |} {res} AUTOLITORALSUL   .48031027   .61859143 {txt}{c |}
+  4. {c |} {res}AUTOPLANALTOSUL   .39413566   .67426258 {txt}{c |}
+  5. {c |} {res}      AUTOREGIS   .37638522   .68633789 {txt}{c |}
+     {c LT}{hline 17}{c -}{hline 11}{c -}{hline 11}{c RT}
+  6. {c |} {res}      CCRPONTE    .73281619   .48055375 {txt}{c |}
+  7. {c |} {res}       CONCEBRA    .3464871   .70716794 {txt}{c |}
+  8. {c |} {res}      CONCEPA     .79194471   .45296306 {txt}{c |}
+  9. {c |} {res}         CONCER   .55503637   .57405138 {txt}{c |}
+ 10. {c |} {res}            CRO   .23770022   .78843901 {txt}{c |}
+     {c LT}{hline 17}{c -}{hline 11}{c -}{hline 11}{c RT}
+ 11. {c |} {res}            CRT    .3191526   .72676464 {txt}{c |}
+ 12. {c |} {res}         ECO101   .34145331   .71073665 {txt}{c |}
+ 13. {c |} {res}       ECOPONTE   .58266884   .55840608 {txt}{c |}
+ 14. {c |} {res}         ECOSUL           0           1 {txt}{c |}
+ 15. {c |} {res}    MGORODOVIAS   .30668256   .73588417 {txt}{c |}
+     {c LT}{hline 17}{c -}{hline 11}{c -}{hline 11}{c RT}
+ 16. {c |} {res}          MSVIA   .45828417   .63236775 {txt}{c |}
+ 17. {c |} {res}      NOVADUTRA   .47846087   .61973652 {txt}{c |}
+ 18. {c |} {res}   RODOVIADOACO   .24068427   .78608978 {txt}{c |}
+ 19. {c |} {res}TRANSBRASILIANA   .15625632   .85533992 {txt}{c |}
+ 20. {c |} {res}         VIA040   .24964224   .77907946 {txt}{c |}
+     {c LT}{hline 17}{c -}{hline 11}{c -}{hline 11}{c RT}
+ 21. {c |} {res}       VIABAHIA   .39233839    .6754755 {txt}{c |}
+     {c BLC}{hline 17}{c -}{hline 11}{c -}{hline 11}{c BRC}
+
+{com}. 
+. *********************************************************************************************
+. * (3) CMAD - Corrected Mean absolute Deviation 
+. qreg $out $inp /* regressão quantílica - utiliza a mediana */
+{txt}Iteration  1:  WLS sum of weighted deviations = {res} .77052213
+
+{txt}Iteration  1: sum of abs. weighted deviations = {res} 1.4199385
+{txt}Iteration  2: sum of abs. weighted deviations = {res} .75498015
+
+{txt}Median regression{col 53}Number of obs = {res}        21
+{txt}  Raw sum of deviations{res} .8034137{txt} (about {res}1.3862944{txt})
+  Min sum of deviations{res} .7549801{col 53}{txt}Pseudo R2     = {res}    0.0603
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}       l_avg{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 6}l_cust {c |}{col 14}{res}{space 2} -.016601{col 26}{space 2} .0466867{col 37}{space 1}   -0.36{col 46}{space 3}0.726{col 54}{space 4}-.1146862{col 67}{space 3} .0814841
+{txt}{space 7}l_rec {c |}{col 14}{res}{space 2} .0293066{col 26}{space 2} .0208083{col 37}{space 1}    1.41{col 46}{space 3}0.176{col 54}{space 4}-.0144101{col 67}{space 3} .0730233
+{txt}{space 7}_cons {c |}{col 14}{res}{space 2} 1.255517{col 26}{space 2} .2776015{col 37}{space 1}    4.52{col 46}{space 3}0.000{col 54}{space 4} .6722983{col 67}{space 3} 1.838736
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+
+{com}. eststo CMAD
+{txt}
+{com}. 
+. predict e_cmad, residual /* salva o resíduo da estimativa OLS na variável e */
+{txt}
+{com}. quietly summarize e_cmad /* obtém as estatísticas sem imprimir nada na tela */
+{txt}
+{com}. gen double eta_star_q = -(e_cmad - r(max)) /* obtém ineficiência a partir dos resíduos corrigidos */ 
+{txt}
+{com}. gen double eff_cmad = exp(-eta_star_q) /* calcula eficiência técnica */
+{txt}
+{com}. 
+. 
+. *********************************************************************************************
+. * (4) Cobb-Douglas Half-Normal Model
+. frontier $out $inp
+{res}
+{txt}Iteration 0:{space 3}log likelihood = {res:  22.09242}  (not concave)
+Iteration 1:{space 3}log likelihood = {res: 22.978133}  
+Iteration 2:{space 3}log likelihood = {res: 24.165287}  (not concave)
+Iteration 3:{space 3}log likelihood = {res: 24.673611}  
+Iteration 4:{space 3}log likelihood = {res: 25.063581}  
+Iteration 5:{space 3}log likelihood = {res: 25.320062}  
+Iteration 6:{space 3}log likelihood = {res: 25.644524}  
+Iteration 7:{space 3}log likelihood = {res: 25.663036}  (backed up)
+Iteration 8:{space 3}log likelihood = {res: 25.683739}  
+Iteration 9:{space 3}log likelihood = {res: 25.697399}  
+Iteration 10:{space 2}log likelihood = {res: 25.706555}  
+Iteration 11:{space 2}log likelihood = {res: 25.714701}  
+Iteration 12:{space 2}log likelihood = {res: 25.723322}  
+Iteration 13:{space 2}log likelihood = {res: 25.725366}  
+Iteration 14:{space 2}log likelihood = {res: 25.728751}  
+Iteration 15:{space 2}log likelihood = {res: 25.728911}  
+Iteration 16:{space 2}log likelihood = {res: 25.730328}  
+Iteration 17:{space 2}log likelihood = {res: 25.730368}  
+Iteration 18:{space 2}log likelihood = {res: 25.730674}  
+Iteration 19:{space 2}log likelihood = {res: 25.730777}  
+Iteration 20:{space 2}log likelihood = {res:  25.73084}  
+Iteration 21:{space 2}log likelihood = {res: 25.730871}  
+Iteration 22:{space 2}log likelihood = {res: 25.730896}  
+Iteration 23:{space 2}log likelihood = {res: 25.730913}  
+Iteration 24:{space 2}log likelihood = {res: 25.730921}  
+Iteration 25:{space 2}log likelihood = {res: 25.730928}  
+Iteration 26:{space 2}log likelihood = {res: 25.730933}  
+Iteration 27:{space 2}log likelihood = {res: 25.730936}  
+Iteration 28:{space 2}log likelihood = {res: 25.730938}  
+{res}
+{txt}Stoc. frontier normal/half-normal model{col 49}Number of obs{col 67}= {res}        21
+{txt}{col 49}Wald chi2({res}2{txt}){col 67}= {res}  3.90e+08
+{txt}Log likelihood = {res} 25.730938{txt}{col 49}Prob > chi2{col 67}= {res}    0.0000
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}       l_avg{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      z{col 46}   P>|z|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 6}l_cust {c |}{col 14}{res}{space 2} .0186587{col 26}{space 2} 1.92e-06{col 37}{space 1} 9710.51{col 46}{space 3}0.000{col 54}{space 4}  .018655{col 67}{space 3} .0186625
+{txt}{space 7}l_rec {c |}{col 14}{res}{space 2}  .007253{col 26}{space 2} 1.22e-06{col 37}{space 1} 5925.49{col 46}{space 3}0.000{col 54}{space 4} .0072506{col 67}{space 3} .0072554
+{txt}{space 7}_cons {c |}{col 14}{res}{space 2} 1.282345{col 26}{space 2} .0000127{col 37}{space 1} 1.0e+05{col 46}{space 3}0.000{col 54}{space 4}  1.28232{col 67}{space 3}  1.28237
+{txt}{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+    /lnsig2v {c |}{col 14}{res}{space 2}-37.71392{col 26}{space 2} 525.9592{col 37}{space 1}   -0.07{col 46}{space 3}0.943{col 54}{space 4}-1068.575{col 67}{space 3} 993.1471
+{txt}    /lnsig2u {c |}{col 14}{res}{space 2}-3.902148{col 26}{space 2} .3086067{col 37}{space 1}  -12.64{col 46}{space 3}0.000{col 54}{space 4}-4.507006{col 67}{space 3} -3.29729
+{txt}{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+     sigma_v {c |}{col 14}{res}{space 2} 6.46e-09{col 26}{space 2} 1.70e-06{col 54}{space 4} 9.2e-233{col 67}{space 3} 4.6e+215
+{txt}     sigma_u {c |}{col 14}{res}{space 2} .1421213{col 26}{space 2} .0219298{col 54}{space 4} .1050306{col 67}{space 3} .1923103
+{txt}      sigma2 {c |}{col 14}{res}{space 2} .0201985{col 26}{space 2} .0062334{col 54}{space 4} .0079813{col 67}{space 3} .0324157
+{txt}      lambda {c |}{col 14}{res}{space 2} 2.20e+07{col 26}{space 2} .0219298{col 54}{space 4} 2.20e+07{col 67}{space 3} 2.20e+07
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+LR test of sigma_u=0: {help j_chibar##|_new:chibar2(01) = }{res}9.18{col 56}{txt}Prob >= chibar2 = {res}0.001
+{txt}
+{com}. eststo sfa_hn
+{txt}
+{com}. 
+. predict e_hn, u /* salva o resíduo da estimativa OLS na variável e */
+{txt}
+{com}. quietly summarize e_hn /* obtém as estatísticas sem imprimir nada na tela */
+{txt}
+{com}. gen double eta_hn= -(e_hn - r(max)) /* obtém ineficiência a partir dos resíduos corrigidos */ 
+{txt}
+{com}. gen double eff_hn = exp(-eta_hn) /* calcula eficiência técnica */
+{txt}
+{com}. 
+. 
+. 
+. *********************************************************************************************
+. * (5) Cobb-Douglas Exponential Model
+. frontier $out $inp, distribution(exponential)
+{res}
+{txt}Iteration 0:{space 3}log likelihood = {res: 21.648107}  
+Iteration 1:{space 3}log likelihood = {res: 21.798838}  (not concave)
+Iteration 2:{space 3}log likelihood = {res: 22.050565}  
+Iteration 3:{space 3}log likelihood = {res: 23.360199}  
+Iteration 4:{space 3}log likelihood = {res:  24.29665}  
+Iteration 5:{space 3}log likelihood = {res: 24.736302}  (backed up)
+Iteration 6:{space 3}log likelihood = {res: 24.818165}  (not concave)
+Iteration 7:{space 3}log likelihood = {res: 25.214106}  
+Iteration 8:{space 3}log likelihood = {res:  25.30756}  
+Iteration 9:{space 3}log likelihood = {res: 25.355372}  
+Iteration 10:{space 2}log likelihood = {res: 25.463825}  (not concave)
+Iteration 11:{space 2}log likelihood = {res: 25.468973}  
+Iteration 12:{space 2}log likelihood = {res:  25.46936}  (backed up)
+Iteration 13:{space 2}log likelihood = {res: 25.471063}  
+Iteration 14:{space 2}log likelihood = {res: 25.475734}  
+Iteration 15:{space 2}log likelihood = {res: 25.478215}  
+Iteration 16:{space 2}log likelihood = {res: 25.479184}  
+Iteration 17:{space 2}log likelihood = {res: 25.480003}  
+Iteration 18:{space 2}log likelihood = {res: 25.480314}  
+Iteration 19:{space 2}log likelihood = {res: 25.480578}  
+Iteration 20:{space 2}log likelihood = {res: 25.480809}  
+Iteration 21:{space 2}log likelihood = {res: 25.480884}  
+Iteration 22:{space 2}log likelihood = {res: 25.480962}  
+Iteration 23:{space 2}log likelihood = {res: 25.480978}  
+Iteration 24:{space 2}log likelihood = {res: 25.481008}  
+Iteration 25:{space 2}log likelihood = {res: 25.481013}  
+Iteration 26:{space 2}log likelihood = {res: 25.481028}  
+Iteration 27:{space 2}log likelihood = {res: 25.481032}  
+Iteration 28:{space 2}log likelihood = {res: 25.481034}  
+{res}
+{txt}Stoc. frontier normal/exponential model{col 49}Number of obs{col 67}= {res}        21
+{txt}{col 49}Wald chi2({res}2{txt}){col 67}= {res}  1.12e+09
+{txt}Log likelihood = {res} 25.481034{txt}{col 49}Prob > chi2{col 67}= {res}    0.0000
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}       l_avg{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      z{col 46}   P>|z|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 6}l_cust {c |}{col 14}{res}{space 2} .0186587{col 26}{space 2} 9.63e-07{col 37}{space 1} 1.9e+04{col 46}{space 3}0.000{col 54}{space 4} .0186568{col 67}{space 3} .0186606
+{txt}{space 7}l_rec {c |}{col 14}{res}{space 2}  .007253{col 26}{space 2} 5.23e-07{col 37}{space 1} 1.4e+04{col 46}{space 3}0.000{col 54}{space 4} .0072519{col 67}{space 3}  .007254
+{txt}{space 7}_cons {c |}{col 14}{res}{space 2} 1.282345{col 26}{space 2} 7.27e-06{col 37}{space 1} 1.8e+05{col 46}{space 3}0.000{col 54}{space 4} 1.282331{col 67}{space 3} 1.282359
+{txt}{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+    /lnsig2v {c |}{col 14}{res}{space 2}-38.21782{col 26}{space 2} 385.6978{col 37}{space 1}   -0.10{col 46}{space 3}0.921{col 54}{space 4}-794.1715{col 67}{space 3} 717.7359
+{txt}    /lnsig2u {c |}{col 14}{res}{space 2}-4.426765{col 26}{space 2} .4364358{col 37}{space 1}  -10.14{col 46}{space 3}0.000{col 54}{space 4}-5.282164{col 67}{space 3}-3.571367
+{txt}{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+     sigma_v {c |}{col 14}{res}{space 2} 5.02e-09{col 26}{space 2} 9.69e-07{col 54}{space 4} 3.5e-173{col 67}{space 3} 7.2e+155
+{txt}     sigma_u {c |}{col 14}{res}{space 2} .1093302{col 26}{space 2} .0238578{col 54}{space 4} .0712841{col 67}{space 3} .1676824
+{txt}      sigma2 {c |}{col 14}{res}{space 2} .0119531{col 26}{space 2} .0052168{col 54}{space 4} .0017284{col 67}{space 3} .0221777
+{txt}      lambda {c |}{col 14}{res}{space 2} 2.18e+07{col 26}{space 2} .0238578{col 54}{space 4} 2.18e+07{col 67}{space 3} 2.18e+07
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+LR test of sigma_u=0: {help j_chibar##|_new:chibar2(01) = }{res}8.68{col 56}{txt}Prob >= chibar2 = {res}0.002
+{txt}
+{com}. eststo sfa_exp
+{txt}
+{com}. 
+. predict e_exp, u /* salva o resíduo da estimativa OLS na variável e */
+{txt}
+{com}. quietly summarize e_exp /* obtém as estatísticas sem imprimir nada na tela */
+{txt}
+{com}. gen double eta_exp= -(e_exp - r(max)) /* obtém ineficiência a partir dos resíduos corrigidos */ 
+{txt}
+{com}. gen double eff_exp = exp(-eta_exp) /* calcula eficiência técnica */
+{txt}
+{com}. 
+. /* não converge!!!!
+> *********************************************************************************************
+> * (6) Cobb-Douglas Trucated Normal
+> frontier $out $inp, distribution(tnormal) cm($reglist)
+> eststo sfa_exp
+> 
+> predict e_exp, u /* salva o resíduo da estimativa OLS na variável e */
+> quietly summarize e_exp /* obtém as estatísticas sem imprimir nada na tela */
+> gen double eta_exp= -(e_exp - r(max)) /* obtém ineficiência a partir dos resíduos corrigidos */ 
+> gen double eff_exp = exp(-eta_exp) /* calcula eficiência técnica */
+> 
+> */
+. 
+. *********************************************************************************************
+. * (7) Cobb-Douglas Half-Normal Model - com variáveis explicativas (uhet)
+. *
+. * Estimador da matrix de variância-covariância (vce) do tipo "clustered sandwich estimator",
+. * assumindo que as observações entre os grupos são inpendentes, porém dentro dos grupos
+. * pode não haver independência. 
+. frontier $out $inp, uhet($reglist) vce(cluster etp) 
+{res}
+{txt}Iteration 0:{space 3}log pseudolikelihood = {res:  22.09242}  (not concave)
+Iteration 1:{space 3}log pseudolikelihood = {res: 26.158088}  (not concave)
+Iteration 2:{space 3}log pseudolikelihood = {res: 27.465507}  (not concave)
+Iteration 3:{space 3}log pseudolikelihood = {res: 28.049597}  
+Iteration 4:{space 3}log pseudolikelihood = {res: 29.121266}  
+Iteration 5:{space 3}log pseudolikelihood = {res: 29.886591}  
+Iteration 6:{space 3}log pseudolikelihood = {res: 30.370387}  
+Iteration 7:{space 3}log pseudolikelihood = {res: 30.606768}  
+Iteration 8:{space 3}log pseudolikelihood = {res: 30.765447}  
+Iteration 9:{space 3}log pseudolikelihood = {res:  30.83463}  
+Iteration 10:{space 2}log pseudolikelihood = {res: 30.875105}  
+Iteration 11:{space 2}log pseudolikelihood = {res: 30.895994}  
+Iteration 12:{space 2}log pseudolikelihood = {res: 30.904375}  
+Iteration 13:{space 2}log pseudolikelihood = {res: 30.910466}  
+Iteration 14:{space 2}log pseudolikelihood = {res: 30.915035}  
+Iteration 15:{space 2}log pseudolikelihood = {res: 30.915946}  
+Iteration 16:{space 2}log pseudolikelihood = {res: 30.916839}  
+Iteration 17:{space 2}log pseudolikelihood = {res: 30.917213}  
+Iteration 18:{space 2}log pseudolikelihood = {res: 30.917532}  
+Iteration 19:{space 2}log pseudolikelihood = {res: 30.917671}  
+Iteration 20:{space 2}log pseudolikelihood = {res: 30.917795}  
+Iteration 21:{space 2}log pseudolikelihood = {res: 30.917849}  
+Iteration 22:{space 2}log pseudolikelihood = {res: 30.917902}  
+Iteration 23:{space 2}log pseudolikelihood = {res:  30.91795}  
+Iteration 24:{space 2}log pseudolikelihood = {res: 30.917959}  
+Iteration 25:{space 2}log pseudolikelihood = {res: 30.917966}  
+Iteration 26:{space 2}log pseudolikelihood = {res: 30.917973}  
+Iteration 27:{space 2}log pseudolikelihood = {res: 30.917975}  
+{res}
+{txt}Stoc. frontier normal/half-normal model{col 49}Number of obs{col 67}= {res}        21
+{txt}{col 49}{help j_robustsingular##|_new:Wald chi2(0)}{col 67}=          {res}.
+{txt}Log pseudolikelihood = {res} 30.917975{txt}{col 49}Prob > chi2{col 67}=          {res}.
+
+{txt}{ralign 78:(Std. Err. adjusted for {res:3} clusters in etp)}
+{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 14}{c |}{col 26}    Robust
+{col 1}       l_avg{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      z{col 46}   P>|z|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}l_avg        {txt}{c |}
+{space 6}l_cust {c |}{col 14}{res}{space 2} .0186587{col 26}{space 2} 1.03e-09{col 37}{space 1} 1.8e+07{col 46}{space 3}0.000{col 54}{space 4} .0186587{col 67}{space 3} .0186587
+{txt}{space 7}l_rec {c |}{col 14}{res}{space 2}  .007253{col 26}{space 2} 6.28e-11{col 37}{space 1} 1.2e+08{col 46}{space 3}0.000{col 54}{space 4}  .007253{col 67}{space 3}  .007253
+{txt}{space 7}_cons {c |}{col 14}{res}{space 2} 1.282345{col 26}{space 2} 8.96e-09{col 37}{space 1} 1.4e+08{col 46}{space 3}0.000{col 54}{space 4} 1.282345{col 67}{space 3} 1.282345
+{txt}{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}lnsig2v      {txt}{c |}
+{space 7}_cons {c |}{col 14}{res}{space 2}-37.55595{col 26}{space 2} .3424159{col 37}{space 1} -109.68{col 46}{space 3}0.000{col 54}{space 4}-38.22708{col 67}{space 3}-36.88483
+{txt}{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}lnsig2u      {txt}{c |}
+{space 9}npp {c |}{col 14}{res}{space 2} 1.742653{col 26}{space 2} .5934613{col 37}{space 1}    2.94{col 46}{space 3}0.003{col 54}{space 4} .5794905{col 67}{space 3} 2.905816
+{txt}{space 9}ext {c |}{col 14}{res}{space 2}-.0097593{col 26}{space 2} .0030538{col 37}{space 1}   -3.20{col 46}{space 3}0.001{col 54}{space 4}-.0157446{col 67}{space 3} -.003774
+{txt}{space 9}tar {c |}{col 14}{res}{space 2} .0833882{col 26}{space 2} .1263669{col 37}{space 1}    0.66{col 46}{space 3}0.509{col 54}{space 4}-.1642864{col 67}{space 3} .3310628
+{txt}{space 5}dEtapa2 {c |}{col 14}{res}{space 2}-2.561765{col 26}{space 2} .8062437{col 37}{space 1}   -3.18{col 46}{space 3}0.001{col 54}{space 4}-4.141974{col 67}{space 3}-.9815563
+{txt}{space 5}dEtapa3 {c |}{col 14}{res}{space 2}-4.993315{col 26}{space 2} 2.172704{col 37}{space 1}   -2.30{col 46}{space 3}0.022{col 54}{space 4}-9.251737{col 67}{space 3}-.7348937
+{txt}{space 7}_cons {c |}{col 14}{res}{space 2}-7.129895{col 26}{space 2} 1.717672{col 37}{space 1}   -4.15{col 46}{space 3}0.000{col 54}{space 4}-10.49647{col 67}{space 3} -3.76332
+{txt}{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+     sigma_v {c |}{col 14}{res}{space 2} 7.00e-09{col 26}{space 2} 1.20e-09{col 54}{space 4} 5.00e-09{col 67}{space 3} 9.79e-09
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+
+{com}. eststo sfa_hn_ex
+{txt}
+{com}. 
+. predict e_hnx, u /* salva o resíduo da estimativa OLS na variável e */
+{txt}
+{com}. quietly summarize e_hnx /* obtém as estatísticas sem imprimir nada na tela */
+{txt}
+{com}. gen double eta_hnx= -(e_hnx - r(max)) /* obtém ineficiência a partir dos resíduos corrigidos */ 
+{txt}
+{com}. gen double eff_hnx = exp(-eta_hnx) /* calcula eficiência técnica */
+{txt}
+{com}. 
+. 
+. *
+. *********************************************************************************************
+. * (8) Cobb-Douglas Exponential Model- com variáveis explicativas (uhet)
+. *
+. *  Como o modelo aceita somente uma variável explicativa, foi escolhida a extensão, na
+. * medida que estão sendo utilizadas as receitas e custos sem ser por km
+. frontier $out $inp, distribution(exponential) uhet(ext) vce(cluster etp) 
+{res}
+{txt}Iteration 0:{space 3}log pseudolikelihood = {res: 21.648107}  
+Iteration 1:{space 3}log pseudolikelihood = {res: 21.824516}  (not concave)
+Iteration 2:{space 3}log pseudolikelihood = {res: 21.944996}  (not concave)
+Iteration 3:{space 3}log pseudolikelihood = {res: 22.797901}  
+Iteration 4:{space 3}log pseudolikelihood = {res: 22.829589}  (not concave)
+Iteration 5:{space 3}log pseudolikelihood = {res: 23.353083}  (not concave)
+Iteration 6:{space 3}log pseudolikelihood = {res: 24.351864}  
+Iteration 7:{space 3}log pseudolikelihood = {res: 24.752409}  
+Iteration 8:{space 3}log pseudolikelihood = {res: 25.080001}  
+Iteration 9:{space 3}log pseudolikelihood = {res: 25.318113}  
+Iteration 10:{space 2}log pseudolikelihood = {res: 25.422924}  
+Iteration 11:{space 2}log pseudolikelihood = {res: 25.444643}  
+Iteration 12:{space 2}log pseudolikelihood = {res: 25.466713}  
+Iteration 13:{space 2}log pseudolikelihood = {res: 25.479784}  
+Iteration 14:{space 2}log pseudolikelihood = {res: 25.486484}  
+Iteration 15:{space 2}log pseudolikelihood = {res: 25.488487}  
+Iteration 16:{space 2}log pseudolikelihood = {res: 25.490356}  
+Iteration 17:{space 2}log pseudolikelihood = {res: 25.491501}  
+Iteration 18:{space 2}log pseudolikelihood = {res: 25.491893}  
+Iteration 19:{space 2}log pseudolikelihood = {res: 25.492259}  
+Iteration 20:{space 2}log pseudolikelihood = {res: 25.492569}  
+Iteration 21:{space 2}log pseudolikelihood = {res: 25.492681}  
+Iteration 22:{space 2}log pseudolikelihood = {res: 25.492757}  
+Iteration 23:{space 2}log pseudolikelihood = {res:  25.49279}  
+Iteration 24:{space 2}log pseudolikelihood = {res: 25.492826}  
+Iteration 25:{space 2}log pseudolikelihood = {res: 25.492849}  
+Iteration 26:{space 2}log pseudolikelihood = {res: 25.492855}  
+Iteration 27:{space 2}log pseudolikelihood = {res: 25.492862}  
+Iteration 28:{space 2}log pseudolikelihood = {res: 25.492866}  
+Iteration 29:{space 2}log pseudolikelihood = {res: 25.492869}  
+Iteration 30:{space 2}log pseudolikelihood = {res: 25.492871}  
+{res}
+{txt}Stoc. frontier normal/exponential model{col 49}Number of obs{col 67}= {res}        21
+{txt}{col 49}{help j_robustsingular##|_new:Wald chi2(0)}{col 67}=          {res}.
+{txt}Log pseudolikelihood = {res} 25.492871{txt}{col 49}Prob > chi2{col 67}=          {res}.
+
+{txt}{ralign 78:(Std. Err. adjusted for {res:3} clusters in etp)}
+{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 14}{c |}{col 26}    Robust
+{col 1}       l_avg{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      z{col 46}   P>|z|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}l_avg        {txt}{c |}
+{space 6}l_cust {c |}{col 14}{res}{space 2} .0186587{col 26}{space 2} 5.67e-10{col 37}{space 1} 3.3e+07{col 46}{space 3}0.000{col 54}{space 4} .0186587{col 67}{space 3} .0186587
+{txt}{space 7}l_rec {c |}{col 14}{res}{space 2}  .007253{col 26}{space 2} 2.92e-11{col 37}{space 1} 2.5e+08{col 46}{space 3}0.000{col 54}{space 4}  .007253{col 67}{space 3}  .007253
+{txt}{space 7}_cons {c |}{col 14}{res}{space 2} 1.282345{col 26}{space 2} 4.21e-09{col 37}{space 1} 3.0e+08{col 46}{space 3}0.000{col 54}{space 4} 1.282345{col 67}{space 3} 1.282345
+{txt}{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}lnsig2v      {txt}{c |}
+{space 7}_cons {c |}{col 14}{res}{space 2}-38.73552{col 26}{space 2} .2644884{col 37}{space 1} -146.45{col 46}{space 3}0.000{col 54}{space 4}-39.25391{col 67}{space 3}-38.21713
+{txt}{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}lnsig2u      {txt}{c |}
+{space 9}ext {c |}{col 14}{res}{space 2} .0002155{col 26}{space 2} .0014174{col 37}{space 1}    0.15{col 46}{space 3}0.879{col 54}{space 4}-.0025626{col 67}{space 3} .0029936
+{txt}{space 7}_cons {c |}{col 14}{res}{space 2}-4.525386{col 26}{space 2} .7861041{col 37}{space 1}   -5.76{col 46}{space 3}0.000{col 54}{space 4}-6.066122{col 67}{space 3} -2.98465
+{txt}{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+     sigma_v {c |}{col 14}{res}{space 2} 3.88e-09{col 26}{space 2} 5.13e-10{col 54}{space 4} 2.99e-09{col 67}{space 3} 5.03e-09
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+
+{com}. eststo sfa_exp_ex
+{txt}
+{com}. 
+. predict e_expx, u /* salva o resíduo da estimativa OLS na variável e */
+{txt}
+{com}. quietly summarize e_expx /* obtém as estatísticas sem imprimir nada na tela */
+{txt}
+{com}. gen double eta_expx= -(e_expx - r(max)) /* obtém ineficiência a partir dos resíduos corrigidos */ 
+{txt}
+{com}. gen double eff_expx = exp(-eta_expx) /* calcula eficiência técnica */
+{txt}
+{com}. 
+. 
+. // saída de dados:
+. summarize eff_ols eff_cols eff_cmad
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 5}eff_ols {c |}{res}         21    1.036107    .1912314   .6912769   1.526122
+{txt}{space 4}eff_cols {c |}{res}         21    .6789152    .1253054   .4529631          1
+{txt}{space 4}eff_cmad {c |}{res}         21    .8823814    .0799144   .6988363          1
+{txt}
+{com}. list dmu conc eff_ols eff_cols eff_cmad eff_hn eff_exp eff_hnx eff_expx 
+{txt}
+     {c TLC}{hline 5}{c -}{hline 17}{c -}{hline 11}{c -}{hline 11}{c -}{hline 11}{c -}{hline 11}{c -}{hline 11}{c -}{hline 11}{c -}{hline 11}{c TRC}
+     {c |} {res}dmu              conc     eff_ols    eff_cols    eff_cmad      eff_hn     eff_exp     eff_hnx    eff_expx {txt}{c |}
+     {c LT}{hline 5}{c -}{hline 17}{c -}{hline 11}{c -}{hline 11}{c -}{hline 11}{c -}{hline 11}{c -}{hline 11}{c -}{hline 11}{c -}{hline 11}{c RT}
+  1. {c |} {res}  1    AUTOFERNAODIAS   .93256039   .61106539   .78750982   .88672509   .88672511   .88672509   .88672511 {txt}{c |}
+  2. {c |} {res}  2    AUTOFLUMINENSE   .89111104   .58390547   .75071182   .82935692   .82935695   .82935692   .82935693 {txt}{c |}
+  3. {c |} {res}  3    AUTOLITORALSUL   .94404605   .61859143   .87704274   .80557577    .8055758   .80557577   .80557578 {txt}{c |}
+  4. {c |} {res}  4   AUTOPLANALTOSUL    1.029007   .67426258   .84056157   .83372087    .8337209   .83372087   .83372089 {txt}{c |}
+  5. {c |} {res}  5         AUTOREGIS   1.0474354   .68633789    .9814035   .71817567   .71817569   .71817568   .71817569 {txt}{c |}
+     {c LT}{hline 5}{c -}{hline 17}{c -}{hline 11}{c -}{hline 11}{c -}{hline 11}{c -}{hline 11}{c -}{hline 11}{c -}{hline 11}{c -}{hline 11}{c RT}
+  6. {c |} {res}  6         CCRPONTE     .7333837   .48055375   .87704274   .79516447   .79516448   .79516447   .79516448 {txt}{c |}
+  7. {c |} {res}  7          CONCEBRA   1.0792246   .70716794   .84398594   .82626223   .82626225   .82626223   .82626224 {txt}{c |}
+  8. {c |} {res}  8         CONCEPA     .69127693   .45296306   .69883631           1           1           1           1 {txt}{c |}
+  9. {c |} {res}  9            CONCER    .8760725   .57405138   .86971164   .80764884   .80764885   .80764884   .80764885 {txt}{c |}
+ 10. {c |} {res} 10               CRO   1.2032542   .78843901   .97249381   .71743996   .71743997   .71743996   .71743997 {txt}{c |}
+     {c LT}{hline 5}{c -}{hline 17}{c -}{hline 11}{c -}{hline 11}{c -}{hline 11}{c -}{hline 11}{c -}{hline 11}{c -}{hline 11}{c -}{hline 11}{c RT}
+ 11. {c |} {res} 11               CRT   1.1091316   .72676464   .90281286   .75255155   .75255156   .75255155   .75255156 {txt}{c |}
+ 12. {c |} {res} 12            ECO101   1.0846709   .71073665   .82538353   .83254452   .83254454   .83254452   .83254454 {txt}{c |}
+ 13. {c |} {res} 13          ECOPONTE   .85219586   .55840608           1   .70225202   .70225204   .70225202   .70225203 {txt}{c |}
+ 14. {c |} {res} 14            ECOSUL   1.5261221           1   .92860904   .71521898     .715219   .71521898   .71521899 {txt}{c |}
+ 15. {c |} {res} 15       MGORODOVIAS   1.1230491   .73588417    .9393434   .74566754   .74566755   .74566754   .74566755 {txt}{c |}
+     {c LT}{hline 5}{c -}{hline 17}{c -}{hline 11}{c -}{hline 11}{c -}{hline 11}{c -}{hline 11}{c -}{hline 11}{c -}{hline 11}{c -}{hline 11}{c RT}
+ 16. {c |} {res} 16             MSVIA    .9650704   .63236775    .8334127   .85173716   .85173719   .85173716   .85173717 {txt}{c |}
+ 17. {c |} {res} 17         NOVADUTRA   .94579359   .61973652   .95515132   .72775863   .72775865   .72775864   .72775865 {txt}{c |}
+ 18. {c |} {res} 18      RODOVIADOACO    1.199669   .78608978   .87704274   .70225202   .70225204   .70225203   .70225204 {txt}{c |}
+ 19. {c |} {res} 19   TRANSBRASILIANA   1.3053532   .85533992   .98147189   .70225202   .70225204   .70225202   .70225203 {txt}{c |}
+ 20. {c |} {res} 20            VIA040   1.1889704   .77907946   .94690485   .73881419    .7388142   .73881419    .7388142 {txt}{c |}
+     {c LT}{hline 5}{c -}{hline 17}{c -}{hline 11}{c -}{hline 11}{c -}{hline 11}{c -}{hline 11}{c -}{hline 11}{c -}{hline 11}{c -}{hline 11}{c RT}
+ 21. {c |} {res} 21          VIABAHIA   1.0308581    .6754755   .84057761   .82938831   .82938834   .82938831   .82938832 {txt}{c |}
+     {c BLC}{hline 5}{c -}{hline 17}{c -}{hline 11}{c -}{hline 11}{c -}{hline 11}{c -}{hline 11}{c -}{hline 11}{c -}{hline 11}{c -}{hline 11}{c BRC}
+
+{com}. estimates table OLS COLS CMAD sfa_hn sfa_exp sfa_hn_ex sfa_exp_ex, b stats(N r2 r2_o r2_b r2_w F chi2) star (.05 .1 .2)
+{res}
+{txt}{hline 12}{c -}{c TT}{c -}{hline 13}{c -}{c -}{c -}{hline 13}{c -}{c -}{c -}{hline 13}{c -}{c -}{c -}{hline 13}{c -}{c -}{c -}{hline 13}{c -}{c -}{c -}{hline 13}{c -}{c -}{c -}{hline 13}{c -}{c -}
+{ralign 12:Variable} {c |} {center 13:OLS} {space 1} {center 13:COLS} {space 1} {center 13:CMAD} {space 1} {center 13:sfa_hn} {space 1} {center 13:sfa_exp} {space 1} {center 13:sfa_hn_ex} {space 1} {center 13:sfa_exp_ex} {space 1}
+{hline 12}{c -}{c +}{c -}{hline 13}{c -}{c -}{c -}{hline 13}{c -}{c -}{c -}{hline 13}{c -}{c -}{c -}{hline 13}{c -}{c -}{c -}{hline 13}{c -}{c -}{c -}{hline 13}{c -}{c -}{c -}{hline 13}{c -}{c -}
+{res}{txt}{res}_            {txt}{c |}{res}
+{txt}{space 6}l_cust {c |}{res} {ralign 10:.18300688}{lalign 3:***}{txt} {space 1}{res} {ralign 10:.18300688}{lalign 3:***}{txt} {space 1}{res} {ralign 10:-.01660102}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}
+{res}{txt}{space 7}l_rec {c |}{res} {ralign 10:.01308843}{lalign 3:}{txt} {space 1}{res} {ralign 10:.01308843}{lalign 3:}{txt} {space 1}{res} {ralign 10:.02930657}{lalign 3:*}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}
+{res}{txt}{space 7}_cons {c |}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:1.2555174}{lalign 3:***}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}
+{res}{txt}{hline 12}{c -}{c +}{c -}{hline 13}{c -}{c -}{c -}{hline 13}{c -}{c -}{c -}{hline 13}{c -}{c -}{c -}{hline 13}{c -}{c -}{c -}{hline 13}{c -}{c -}{c -}{hline 13}{c -}{c -}{c -}{hline 13}{c -}{c -}
+{res}{txt}{res}l_avg        {txt}{c |}{res}
+{txt}{space 6}l_cust {c |}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:.01865872}{lalign 3:***}{txt} {space 1}{res} {ralign 10:.01865872}{lalign 3:***}{txt} {space 1}{res} {ralign 10:.01865872}{lalign 3:***}{txt} {space 1}{res} {ralign 10:.01865872}{lalign 3:***}{txt} {space 1}
+{res}{txt}{space 7}l_rec {c |}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:.00725297}{lalign 3:***}{txt} {space 1}{res} {ralign 10:.00725297}{lalign 3:***}{txt} {space 1}{res} {ralign 10:.00725297}{lalign 3:***}{txt} {space 1}{res} {ralign 10:.00725297}{lalign 3:***}{txt} {space 1}
+{res}{txt}{space 7}_cons {c |}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:1.2823448}{lalign 3:***}{txt} {space 1}{res} {ralign 10:1.2823448}{lalign 3:***}{txt} {space 1}{res} {ralign 10:1.2823448}{lalign 3:***}{txt} {space 1}{res} {ralign 10:1.2823447}{lalign 3:***}{txt} {space 1}
+{res}{txt}{hline 12}{c -}{c +}{c -}{hline 13}{c -}{c -}{c -}{hline 13}{c -}{c -}{c -}{hline 13}{c -}{c -}{c -}{hline 13}{c -}{c -}{c -}{hline 13}{c -}{c -}{c -}{hline 13}{c -}{c -}{c -}{hline 13}{c -}{c -}
+{res}{txt}{res}lnsig2v      {txt}{c |}{res}
+{txt}{space 7}_cons {c |}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:-37.713916}{lalign 3:}{txt} {space 1}{res} {ralign 10:-38.217816}{lalign 3:}{txt} {space 1}{res} {ralign 10:-37.555953}{lalign 3:***}{txt} {space 1}{res} {ralign 10:-38.735519}{lalign 3:***}{txt} {space 1}
+{res}{txt}{hline 12}{c -}{c +}{c -}{hline 13}{c -}{c -}{c -}{hline 13}{c -}{c -}{c -}{hline 13}{c -}{c -}{c -}{hline 13}{c -}{c -}{c -}{hline 13}{c -}{c -}{c -}{hline 13}{c -}{c -}{c -}{hline 13}{c -}{c -}
+{res}{txt}{res}lnsig2u      {txt}{c |}{res}
+{txt}{space 9}npp {c |}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:1.7426534}{lalign 3:***}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}
+{res}{txt}{space 9}ext {c |}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:-.0097593}{lalign 3:***}{txt} {space 1}{res} {ralign 10:.00021549}{lalign 3:}{txt} {space 1}
+{res}{txt}{space 9}tar {c |}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:.0833882}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}
+{res}{txt}{space 5}dEtapa2 {c |}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:-2.5617649}{lalign 3:***}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}
+{res}{txt}{space 5}dEtapa3 {c |}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:-4.9933153}{lalign 3:***}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}
+{res}{txt}{space 7}_cons {c |}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:-3.9021483}{lalign 3:***}{txt} {space 1}{res} {ralign 10:-4.4267652}{lalign 3:***}{txt} {space 1}{res} {ralign 10:-7.1298947}{lalign 3:***}{txt} {space 1}{res} {ralign 10:-4.525386}{lalign 3:***}{txt} {space 1}
+{res}{txt}{hline 12}{c -}{c +}{c -}{hline 13}{c -}{c -}{c -}{hline 13}{c -}{c -}{c -}{hline 13}{c -}{c -}{c -}{hline 13}{c -}{c -}{c -}{hline 13}{c -}{c -}{c -}{hline 13}{c -}{c -}{c -}{hline 13}{c -}{c -}
+{res}{lalign 12:Statistics}{txt} {c |} {center 13:} {space 1} {center 13:} {space 1} {center 13:} {space 1} {center 13:} {space 1} {center 13:} {space 1} {center 13:} {space 1} {center 13:} {space 1}
+{res}{txt}{ralign 12:N} {c |}{res} {ralign 10:21}{lalign 3:}{txt} {space 1}{res} {ralign 10:21}{lalign 3:}{txt} {space 1}{res} {ralign 10:21}{lalign 3:}{txt} {space 1}{res} {ralign 10:21}{lalign 3:}{txt} {space 1}{res} {ralign 10:21}{lalign 3:}{txt} {space 1}{res} {ralign 10:21}{lalign 3:}{txt} {space 1}{res} {ralign 10:21}{lalign 3:}{txt} {space 1}
+{res}{txt}{ralign 12:r2} {c |}{res} {ralign 10:.98208553}{lalign 3:}{txt} {space 1}{res} {ralign 10:.98208553}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}
+{res}{txt}{ralign 12:r2_o} {c |}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}
+{res}{txt}{ralign 12:r2_b} {c |}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}
+{res}{txt}{ralign 12:r2_w} {c |}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}
+{res}{txt}{ralign 12:F} {c |}{res} {ralign 10:520.7975}{lalign 3:}{txt} {space 1}{res} {ralign 10:520.7975}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}
+{res}{txt}{ralign 12:chi2} {c |}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:}{lalign 3:}{txt} {space 1}{res} {ralign 10:3.898e+08}{lalign 3:}{txt} {space 1}{res} {ralign 10:1.117e+09}{lalign 3:}{txt} {space 1}{res} {ralign 10:.}{lalign 3:}{txt} {space 1}{res} {ralign 10:.}{lalign 3:}{txt} {space 1}
+{res}{txt}{hline 12}{c -}{c BT}{c -}{hline 13}{c -}{c -}{c -}{hline 13}{c -}{c -}{c -}{hline 13}{c -}{c -}{c -}{hline 13}{c -}{c -}{c -}{hline 13}{c -}{c -}{c -}{hline 13}{c -}{c -}{c -}{hline 13}{c -}{c -}
+{ralign 126:legend: * p<.2; ** p<.1; *** p<.05}
+{res}{txt}
+{com}. 
+. 
+. save results_sfa, replace
+{txt}(note: file results_sfa.dta not found)
+file results_sfa.dta saved
+
+{com}. 
+. savesome dmu conc eff_ols eff_cols eff_cmad eff_hn eff_exp eff_hnx eff_expx using eff_sfa, replace
+{txt}(note: file eff_sfa.dta not found)
+file eff_sfa.dta saved
+
+{com}. 
+. by etp, sort: summarize eff_ols eff_cols eff_cmad eff_hn eff_exp eff_hnx eff_expx
+
+{txt}{hline}
+-> etp = 1
+
+    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 5}eff_ols {c |}{res}          6    .9802967    .3069447   .6912769   1.526122
+{txt}{space 4}eff_cols {c |}{res}          6    .6423449    .2011273   .4529631          1
+{txt}{space 4}eff_cmad {c |}{res}          6    .8720273    .0906471   .6988363   .9551513
+{txt}{space 6}eff_hn {c |}{res}          6    .7997237    .1046321    .715219          1
+{txt}{space 5}eff_exp {c |}{res}          6    .7997238    .1046321    .715219          1
+{txt}{hline 13}{c +}{hline 57}
+{space 5}eff_hnx {c |}{res}          6    .7997237    .1046321    .715219          1
+{txt}{space 4}eff_expx {c |}{res}          6    .7997238    .1046321    .715219          1
+
+{txt}{hline}
+-> etp = 2
+
+    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 5}eff_ols {c |}{res}          8    1.047505    .1407297    .891111   1.305353
+{txt}{space 4}eff_cols {c |}{res}          8    .6863835    .0922139   .5839055   .8553399
+{txt}{space 4}eff_cmad {c |}{res}          8    .8670402    .0824902   .7507118   .9814719
+{txt}{space 6}eff_hn {c |}{res}          8    .7884308    .0708607    .702252   .8867251
+{txt}{space 5}eff_exp {c |}{res}          8    .7884309    .0708608    .702252   .8867251
+{txt}{hline 13}{c +}{hline 57}
+{space 5}eff_hnx {c |}{res}          8    .7884308    .0708607    .702252   .8867251
+{txt}{space 4}eff_expx {c |}{res}          8    .7884308    .0708607    .702252   .8867251
+
+{txt}{hline}
+-> etp = 3
+
+    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 5}eff_ols {c |}{res}          7    1.070919    .1248119   .8521959   1.203254
+{txt}{space 4}eff_cols {c |}{res}          7    .7017259    .0817837   .5584061    .788439
+{txt}{space 4}eff_cmad {c |}{res}          7    .9087892    .0725737   .8253835          1
+{txt}{space 6}eff_hn {c |}{res}          7    .7735311    .0613568    .702252   .8517372
+{txt}{space 5}eff_exp {c |}{res}          7    .7735311    .0613568    .702252   .8517372
+{txt}{hline 13}{c +}{hline 57}
+{space 5}eff_hnx {c |}{res}          7    .7735311    .0613568    .702252   .8517372
+{txt}{space 4}eff_expx {c |}{res}          7    .7735311    .0613568    .702252   .8517372
+
+{txt}
+{com}. 
+. 
+. * close log file
+. log close
+      {txt}name:  {res}<unnamed>
+       {txt}log:  {res}C:\Dropbox\ANTT\AR-2017-2018\Fator X\1.PROJETO\STATA\Analysis-DEA-SFA\SFA\logSFA. 8 Dec 201710_29_30
+  {txt}log type:  {res}smcl
+ {txt}closed on:  {res} 8 Dec 2017, 10:29:33
+{txt}{.-}
+{smcl}
+{txt}{sf}{ul off}
